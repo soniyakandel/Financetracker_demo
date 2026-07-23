@@ -3,6 +3,8 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 
+CATEGORIES = ["Food", "Transport", "Shopping", "Bills", "Other"]
+
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///site.db"
 
@@ -14,6 +16,7 @@ class Expense(db.Model):
     title = db.Column(db.String(100))
     amount = db.Column(db.Float)
     date = db.Column(db.Date)
+    category = db.Column(db.String(50))
 
 
 @app.route("/")
@@ -29,11 +32,12 @@ def add():
             title=request.form["title"],
             amount=float(request.form["amount"]),
             date=datetime.strptime(request.form["date"], "%Y-%m-%d").date(),
+            category=request.form["category"],
         )
         db.session.add(expense)
         db.session.commit()
         return redirect(url_for("home"))
-    return render_template("add.html")
+    return render_template("add.html", categories=CATEGORIES)
 
 
 @app.route("/edit/<int:expense_id>", methods=["GET", "POST"])
@@ -43,9 +47,10 @@ def edit(expense_id):
         expense.title = request.form["title"]
         expense.amount = float(request.form["amount"])
         expense.date = datetime.strptime(request.form["date"], "%Y-%m-%d").date()
+        expense.category = request.form["category"]
         db.session.commit()
         return redirect(url_for("home"))
-    return render_template("edit.html", expense=expense)
+    return render_template("edit.html", expense=expense, categories=CATEGORIES)
 
 
 @app.route("/delete/<int:expense_id>")

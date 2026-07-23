@@ -10,6 +10,7 @@
         <tr>
             <th>Title</th>
             <th>Amount</th>
+            <th>Category</th>
             <th>Date</th>
             <th></th>
         </tr>
@@ -17,6 +18,7 @@
         <tr>
             <td>{{ expense.title }}</td>
             <td>{{ expense.amount }}</td>
+            <td>{{ expense.category }}</td>
             <td>{{ expense.date.strftime("%d %b %Y") }}</td>
             <td>
                 <a href="/edit/{{ expense.id }}">edit</a>

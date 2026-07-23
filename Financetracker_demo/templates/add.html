@@ -9,6 +9,13 @@
         <p>Title: <input type="text" name="title"></p>
         <p>Amount: <input type="text" name="amount"></p>
         <p>Date: <input type="date" name="date"></p>
+        <p>Category:
+            <select name="category">
+                {% for category in categories %}
+                <option value="{{ category }}">{{ category }}</option>
+                {% endfor %}
+            </select>
+        </p>
         <button type="submit">Save</button>
     </form>
     <a href="/">Back</a>

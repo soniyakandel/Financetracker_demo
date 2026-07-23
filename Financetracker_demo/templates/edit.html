@@ -9,6 +9,13 @@
         <p>Title: <input type="text" name="title" value="{{ expense.title }}"></p>
         <p>Amount: <input type="text" name="amount" value="{{ expense.amount }}"></p>
         <p>Date: <input type="date" name="date" value="{{ expense.date }}"></p>
+        <p>Category:
+            <select name="category">
+                {% for category in categories %}
+                <option value="{{ category }}" {% if category == expense.category %}selected{% endif %}>{{ category }}</option>
+                {% endfor %}
+            </select>
+        </p>
         <button type="submit">Save</button>
     </form>
     <a href="/">Back</a>
