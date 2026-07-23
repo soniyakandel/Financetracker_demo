@@ -16,7 +16,8 @@ class Expense(db.Model):
 
 @app.route("/")
 def home():
-    return render_template("index.html")
+    expenses = Expense.query.all()
+    return render_template("index.html", expenses=expenses)
 
 
 @app.route("/add", methods=["GET", "POST"])

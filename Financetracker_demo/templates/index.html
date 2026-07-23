@@ -6,6 +6,19 @@
 <body>
     <h1>Finance Tracker</h1>
     <a href="/add">Add Expense</a>
-    <p>My expenses will show up here.</p>
+    <table border="1">
+        <tr>
+            <th>Title</th>
+            <th>Amount</th>
+            <th>Date</th>
+        </tr>
+        {% for expense in expenses %}
+        <tr>
+            <td>{{ expense.title }}</td>
+            <td>{{ expense.amount }}</td>
+            <td>{{ expense.date }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 </body>
 </html>
