@@ -18,7 +18,10 @@
             <td>{{ expense.title }}</td>
             <td>{{ expense.amount }}</td>
             <td>{{ expense.date.strftime("%d %b %Y") }}</td>
-            <td><a href="/delete/{{ expense.id }}">delete</a></td>
+            <td>
+                <a href="/edit/{{ expense.id }}">edit</a>
+                <a href="/delete/{{ expense.id }}">delete</a>
+            </td>
         </tr>
         {% endfor %}
     </table>

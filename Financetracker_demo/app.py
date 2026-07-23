@@ -36,6 +36,18 @@ def add():
     return render_template("add.html")
 
 
+@app.route("/edit/<int:expense_id>", methods=["GET", "POST"])
+def edit(expense_id):
+    expense = Expense.query.get(expense_id)
+    if request.method == "POST":
+        expense.title = request.form["title"]
+        expense.amount = float(request.form["amount"])
+        expense.date = datetime.strptime(request.form["date"], "%Y-%m-%d").date()
+        db.session.commit()
+        return redirect(url_for("home"))
+    return render_template("edit.html", expense=expense)
+
+
 @app.route("/delete/<int:expense_id>")
 def delete(expense_id):
     expense = Expense.query.get(expense_id)
