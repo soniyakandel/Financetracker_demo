@@ -7,11 +7,14 @@ Auther - Soniya Kandel
 pythom -m venv venv
 .\venv\scripts\Activate
 
-# add comment in git
+# To run the project
+python app.py
+
+# add command in git
 git add . 
 
-# commit comment in git
+# commit command in git
 git commit -m "commit message"
 
-# push comment in git
+# push command in git
 git push
