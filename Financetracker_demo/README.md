@@ -10,6 +10,9 @@ pythom -m venv venv
 # To run the project
 python app.py
 
+# Install
+pip install flask-sqlalchemy
+
 # add command in git
 git add . 
 
