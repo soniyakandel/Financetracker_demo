@@ -7,11 +7,13 @@ Auther - Soniya Kandel
 pythom -m venv venv
 .\venv\scripts\Activate
 
-# To run the project
-python app.py
+
 
 # Install
 pip install flask-sqlalchemy
+
+# To run the project
+python app.py
 
 # add command in git
 git add . 
