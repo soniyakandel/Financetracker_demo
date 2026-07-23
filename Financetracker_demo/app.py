@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 
@@ -10,13 +12,13 @@ db = SQLAlchemy(app)
 class Expense(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100))
-    amount = db.Column(db.String(50))
-    date = db.Column(db.String(50))
+    amount = db.Column(db.Float)
+    date = db.Column(db.Date)
 
 
 @app.route("/")
 def home():
-    expenses = Expense.query.all()
+    expenses = Expense.query.order_by(Expense.date.desc()).all()
     return render_template("index.html", expenses=expenses)
 
 
@@ -25,8 +27,8 @@ def add():
     if request.method == "POST":
         expense = Expense(
             title=request.form["title"],
-            amount=request.form["amount"],
-            date=request.form["date"],
+            amount=float(request.form["amount"]),
+            date=datetime.strptime(request.form["date"], "%Y-%m-%d").date(),
         )
         db.session.add(expense)
         db.session.commit()

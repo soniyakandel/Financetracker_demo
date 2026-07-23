@@ -2,7 +2,7 @@
 
 This is my first Git Repository
 <br>
-Auther - Soniya Kandel
+Author - Soniya Kandel
 
 pythom -m venv venv
 .\venv\scripts\Activate

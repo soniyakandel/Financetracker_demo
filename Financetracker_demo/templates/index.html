@@ -16,7 +16,7 @@
         <tr>
             <td>{{ expense.title }}</td>
             <td>{{ expense.amount }}</td>
-            <td>{{ expense.date }}</td>
+            <td>{{ expense.date.strftime("%d %b %Y") }}</td>
         </tr>
         {% endfor %}
     </table>
