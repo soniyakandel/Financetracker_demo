@@ -36,6 +36,14 @@ def add():
     return render_template("add.html")
 
 
+@app.route("/delete/<int:expense_id>")
+def delete(expense_id):
+    expense = Expense.query.get(expense_id)
+    db.session.delete(expense)
+    db.session.commit()
+    return redirect(url_for("home"))
+
+
 with app.app_context():
     db.create_all()
 

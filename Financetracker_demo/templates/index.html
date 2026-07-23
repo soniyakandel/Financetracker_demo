@@ -11,12 +11,14 @@
             <th>Title</th>
             <th>Amount</th>
             <th>Date</th>
+            <th></th>
         </tr>
         {% for expense in expenses %}
         <tr>
             <td>{{ expense.title }}</td>
             <td>{{ expense.amount }}</td>
             <td>{{ expense.date.strftime("%d %b %Y") }}</td>
+            <td><a href="/delete/{{ expense.id }}">delete</a></td>
         </tr>
         {% endfor %}
     </table>
