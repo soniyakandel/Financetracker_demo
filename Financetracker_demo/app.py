@@ -22,7 +22,8 @@ class Expense(db.Model):
 @app.route("/")
 def home():
     expenses = Expense.query.order_by(Expense.date.desc()).all()
-    return render_template("index.html", expenses=expenses)
+    total = sum(expense.amount for expense in expenses)
+    return render_template("index.html", expenses=expenses, total=total)
 
 
 @app.route("/add", methods=["GET", "POST"])
