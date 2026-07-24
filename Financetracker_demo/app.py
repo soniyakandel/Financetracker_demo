@@ -1,6 +1,13 @@
 from datetime import datetime
 
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for
+from flask_login import (
+    LoginManager,
+    current_user,
+    login_required,
+    login_user,
+    logout_user,
+)
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from models import db, Expense, User
@@ -13,13 +20,20 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///site.db"
 
 db.init_app(app)
 
+login_manager = LoginManager(app)
+login_manager.login_view = "login"
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return db.session.get(User, int(user_id))
+
 
 @app.route("/")
+@login_required
 def home():
-    if "user_id" not in session:
-        return redirect(url_for("login"))
     expenses = (
-        Expense.query.filter_by(user_id=session["user_id"])
+        Expense.query.filter_by(user_id=current_user.id)
         .order_by(Expense.date.desc())
         .all()
     )
@@ -28,16 +42,15 @@ def home():
 
 
 @app.route("/add", methods=["GET", "POST"])
+@login_required
 def add():
-    if "user_id" not in session:
-        return redirect(url_for("login"))
     if request.method == "POST":
         expense = Expense(
             title=request.form["title"],
             amount=float(request.form["amount"]),
             date=datetime.strptime(request.form["date"], "%Y-%m-%d").date(),
             category=request.form["category"],
-            user_id=session["user_id"],
+            user_id=current_user.id,
         )
         db.session.add(expense)
         db.session.commit()
@@ -64,22 +77,22 @@ def login():
     if request.method == "POST":
         user = User.query.filter_by(email=request.form["email"]).first()
         if user and check_password_hash(user.password, request.form["password"]):
-            session["user_id"] = user.id
+            login_user(user)
             return redirect(url_for("home"))
         return render_template("login.html", error="Wrong email or password")
     return render_template("login.html")
 
 
 @app.route("/logout")
+@login_required
 def logout():
-    session.pop("user_id", None)
+    logout_user()
     return redirect(url_for("login"))
 
 
 @app.route("/edit/<int:expense_id>", methods=["GET", "POST"])
+@login_required
 def edit(expense_id):
-    if "user_id" not in session:
-        return redirect(url_for("login"))
     expense = Expense.query.get(expense_id)
     if request.method == "POST":
         expense.title = request.form["title"]
@@ -92,9 +105,8 @@ def edit(expense_id):
 
 
 @app.route("/delete/<int:expense_id>")
+@login_required
 def delete(expense_id):
-    if "user_id" not in session:
-        return redirect(url_for("login"))
     expense = Expense.query.get(expense_id)
     db.session.delete(expense)
     db.session.commit()
