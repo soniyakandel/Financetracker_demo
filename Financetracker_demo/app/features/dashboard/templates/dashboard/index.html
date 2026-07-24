@@ -47,4 +47,114 @@
       <p class="stat__meta">Across all your savings goals</p>
     </div>
   </div>
+  <div class="grid grid--2" style="margin-top: 24px;">
+    <section class="card">
+      <div class="card__head">
+        <h2 class="card__title">Where your money went</h2>
+        <p class="card__hint">{{ stats.month_label }}</p>
+      </div>
+      <div class="chart-box">
+        <canvas id="categoryChart"
+                data-url="{{ url_for('dashboard.api_category_breakdown') }}"
+                aria-label="Spending by category"></canvas>
+      </div>
+      {% if breakdown %}
+        <ul class="legend">
+          {% for row in breakdown[:6] %}
+            <li class="legend__item">
+              <span class="legend__swatch" style="background: {{ row.colour }};"></span>
+              {{ row.icon }} {{ row.name }}
+              <span class="legend__value">{{ row.amount|money }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </section>
+    <section class="card">
+      <div class="card__head">
+        <h2 class="card__title">Last six months</h2>
+        <p class="card__hint">Money in against money out</p>
+      </div>
+      <div class="chart-box">
+        <canvas id="trendChart"
+                data-url="{{ url_for('dashboard.api_monthly_trend') }}"
+                aria-label="Income and expense over six months"></canvas>
+      </div>
+    </section>
+  </div>
+  <div class="grid grid--2" style="margin-top: 24px;">
+    <section class="card">
+      <div class="card__head">
+        <h2 class="card__title">Budget watch</h2>
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('budgets.index') }}">All budgets</a>
+      </div>
+      {% if budgets %}
+        <div class="stack">
+          {% for budget in budgets %}
+            <div>
+              <div style="display:flex; align-items:center; gap:8px; font-size:14px;">
+                <span>{{ budget.category.icon }} {{ budget.category.name }}</span>
+                <span style="margin-left:auto; font-family: var(--font-num);">
+                  {{ budget.spent|money }} / {{ budget.amount_limit|money }}
+                </span>
+              </div>
+              <div class="progress" style="margin-top:6px;">
+                <div class="progress__bar progress__bar--{{ budget.status }}"
+                     style="width: {{ [budget.percent_used, 100]|min }}%"
+                     role="progressbar" aria-valuenow="{{ budget.percent_used }}"
+                     aria-valuemin="0" aria-valuemax="100"
+                     aria-label="{{ budget.category.name }} budget used"></div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty">
+          <p class="empty__title">No budgets set for this month</p>
+          <p>A budget tells you when a category is running hot.</p>
+          <div class="btn-row" style="justify-content:center; margin-top:12px;">
+            <a class="btn btn--sm" href="{{ url_for('budgets.create') }}">Set a budget</a>
+          </div>
+        </div>
+      {% endif %}
+    </section>
+    <section class="card">
+      <div class="card__head">
+        <h2 class="card__title">Recent activity</h2>
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('expenses.index') }}">All transactions</a>
+      </div>
+      {% if recent %}
+        <div class="table-wrap">
+          <table class="table">
+            <tbody>
+              {% for item in recent %}
+                <tr>
+                  <td>{{ item.spent_on|short_date }}</td>
+                  <td class="wrap">
+                    {% if item.category %}{{ item.category.icon }} {{ item.category.name }}
+                    {% else %}Income{% endif %}
+                    {% if item.note %}<span class="card__hint"> - {{ item.note }}</span>{% endif %}
+                  </td>
+                  <td class="num {{ 'amount--out' if item.is_expense else 'amount--in' }}">
+                    {{ "-" if item.is_expense else "+" }}{{ item.amount|money }}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty">
+          <p class="empty__title">Nothing recorded yet</p>
+          <div class="btn-row" style="justify-content:center; margin-top:12px;">
+            <a class="btn btn--sm" href="{{ url_for('expenses.create') }}">Add a transaction</a>
+          </div>
+        </div>
+      {% endif %}
+    </section>
+  </div>
+{% endblock %}
+{% block scripts %}
+  <script src="{{ url_for('static', filename='vendor/chart.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/charts.js') }}" defer></script>
 {% endblock %}
