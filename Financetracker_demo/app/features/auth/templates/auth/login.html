@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Login</h1>
+{% if error %}
+<p style="color: red;">{{ error }}</p>
+{% endif %}
+<form method="POST">
+    <p>Email: <input type="email" name="email"></p>
+    <p>Password: <input type="password" name="password"></p>
+    <button type="submit">Login</button>
+</form>
+<a href="{{ url_for('auth.register') }}">Create an account</a>
+{% endblock %}

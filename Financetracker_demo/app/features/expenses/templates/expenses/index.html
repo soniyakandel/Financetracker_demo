@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Finance Tracker</h1>
+<p>Logged in as {{ current_user.name }}</p>
+<p>Total spent: Rs {{ total }}</p>
+<a href="{{ url_for('expenses.create') }}">Add Expense</a>
+<a href="{{ url_for('auth.logout') }}">Logout</a>
+<table>
+    <tr>
+        <th>Title</th>
+        <th>Amount</th>
+        <th>Category</th>
+        <th>Date</th>
+        <th></th>
+    </tr>
+    {% for expense in expenses %}
+    <tr>
+        <td>{{ expense.title }}</td>
+        <td>{{ expense.amount }}</td>
+        <td>{{ expense.category }}</td>
+        <td>{{ expense.date.strftime("%d %b %Y") }}</td>
+        <td>
+            <a href="{{ url_for('expenses.edit', expense_id=expense.id) }}">edit</a>
+            <a href="{{ url_for('expenses.delete', expense_id=expense.id) }}">delete</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
