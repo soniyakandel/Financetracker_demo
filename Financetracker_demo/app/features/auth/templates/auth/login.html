@@ -1,14 +1,15 @@
 {% extends "layouts/auth.html" %}
-{% from "partials/_forms.html" import field %}
+{% from "partials/_forms.html" import field, checkbox_field %}
 {% block title %}Sign in - Finance Tracker{% endblock %}
 {% block auth_title %}Welcome back{% endblock %}
-{% block auth_subtitle %}Sign in to see where your money went.{% endblock %}
+{% block auth_subtitle %}Sign in with your password. We will then send a six digit code to finish.{% endblock %}
 {% block auth_body %}
-  <form method="post" novalidate>
+  <form method="post" class="form" novalidate>
     {{ form.hidden_tag() }}
-    {{ field(form.email, autofocus=True, autocomplete="email") }}
+    {{ field(form.email, autofocus=true, autocomplete="email") }}
     {{ field(form.password, autocomplete="current-password") }}
-    {{ form.submit(class="btn btn--primary btn--block") }}
+    {{ checkbox_field(form.remember_me) }}
+    {{ form.submit(class="btn btn--block") }}
   </form>
 {% endblock %}
 {% block auth_foot %}

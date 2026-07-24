@@ -1,16 +1,33 @@
 {% extends "layouts/auth.html" %}
-{% from "partials/_forms.html" import field %}
-{% block title %}Create account - Finance Tracker{% endblock %}
+{% from "partials/_forms.html" import field, checkbox_field %}
+{% block title %}Create your account - Finance Tracker{% endblock %}
 {% block auth_title %}Create your account{% endblock %}
-{% block auth_subtitle %}It takes less than a minute.{% endblock %}
+{% block auth_subtitle %}It takes less than a minute, and your ten spending categories are set up for you.{% endblock %}
 {% block auth_body %}
-  <form method="post" novalidate>
+  <form method="post" class="form" novalidate>
     {{ form.hidden_tag() }}
-    {{ field(form.name, autofocus=True, autocomplete="name") }}
+    {{ field(form.name, autofocus=true, autocomplete="name") }}
     {{ field(form.email, autocomplete="email") }}
-    {{ field(form.password, autocomplete="new-password", extra_class="js-password") }}
-    {{ field(form.confirm, autocomplete="new-password") }}
-    {{ form.submit(class="btn btn--primary btn--block") }}
+    <div class="field">
+      {{ form.password.label(class="field__label") }}
+      {{ form.password(
+          class="input" ~ (" input--error" if form.password.errors else ""),
+          autocomplete="new-password",
+          **{"data-strength-input": "true"}) }}
+      <div class="meter"><div class="meter__bar" data-strength-bar data-score="0"></div></div>
+      <p class="meter__text" data-strength-text>These rules are checked again on the server.</p>
+      {% if form.password.errors %}
+        <ul class="field__errors">
+          {% for error in form.password.errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+      {% endif %}
+      <ul class="rule-list">
+        {% for rule in password_rules %}<li>{{ rule }}</li>{% endfor %}
+      </ul>
+    </div>
+    {{ field(form.confirm_password, autocomplete="new-password") }}
+    {{ checkbox_field(form.accept_terms) }}
+    {{ form.submit(class="btn btn--block") }}
   </form>
 {% endblock %}
 {% block auth_foot %}
