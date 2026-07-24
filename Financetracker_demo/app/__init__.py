@@ -6,6 +6,7 @@ from app.config import Config
 from app.commands import register_commands
 from app.filters import register_filters
 from app.extensions import csrf, db, login_manager
+from app.security.session_guard import register_session_guard
 
 
 def create_app():
@@ -19,6 +20,8 @@ def create_app():
     csrf.init_app(app)
 
     from app import models
+
+    register_session_guard(app)
 
     register_filters(app)
 
