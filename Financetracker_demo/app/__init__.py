@@ -3,6 +3,7 @@ import os
 from flask import Flask
 
 from app.config import Config
+from app.commands import register_commands
 from app.filters import register_filters
 from app.extensions import csrf, db, login_manager
 
@@ -30,5 +31,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(expenses_bp)
     app.register_blueprint(categories_bp)
+
+    register_commands(app)
 
     return app
