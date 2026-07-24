@@ -4,13 +4,16 @@ from flask_login import current_user, login_required
 from app.extensions import db
 from app.features.expenses import expenses_bp
 from app.features.expenses.forms import ExpenseForm
-from app.models import Expense
+from app.models.category import Category
+from app.models.expense import Expense
 
-CATEGORIES = ["Food", "Transport", "Shopping", "Bills", "Other"]
 
-
-def _category_choices():
-    return [(name, name) for name in CATEGORIES]
+def _user_categories():
+    return (
+        Category.query.filter_by(user_id=current_user.id)
+        .order_by(Category.is_default.desc(), Category.name)
+        .all()
+    )
 
 
 @expenses_bp.route("/")
@@ -29,14 +32,14 @@ def index():
 @login_required
 def create():
     form = ExpenseForm()
-    form.category.choices = _category_choices()
+    form.set_category_choices(_user_categories())
     if form.validate_on_submit():
         expense = Expense(
             user_id=current_user.id,
             title=form.title.data.strip(),
             amount=float(form.amount.data),
             date=form.date.data,
-            category=form.category.data,
+            category_id=form.category_id.data,
         )
         db.session.add(expense)
         db.session.commit()
@@ -50,12 +53,12 @@ def create():
 def edit(expense_id):
     expense = Expense.query.get_or_404(expense_id)
     form = ExpenseForm(obj=expense)
-    form.category.choices = _category_choices()
+    form.set_category_choices(_user_categories())
     if form.validate_on_submit():
         expense.title = form.title.data.strip()
         expense.amount = float(form.amount.data)
         expense.date = form.date.data
-        expense.category = form.category.data
+        expense.category_id = form.category_id.data
         db.session.commit()
         flash("Expense updated.", "success")
         return redirect(url_for("expenses.index"))

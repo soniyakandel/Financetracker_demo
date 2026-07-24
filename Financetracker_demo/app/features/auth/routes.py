@@ -4,7 +4,8 @@ from flask_login import login_required, login_user, logout_user
 from app.extensions import db
 from app.features.auth import auth_bp
 from app.features.auth.forms import LoginForm, RegisterForm
-from app.models import User
+from app.models.category import Category
+from app.models.user import User
 
 
 @auth_bp.route("/register", methods=["GET", "POST"])
@@ -19,6 +20,9 @@ def register():
         user = User(name=form.name.data.strip(), email=email)
         user.set_password(form.password.data)
         db.session.add(user)
+        db.session.flush()
+
+        Category.create_defaults_for(user)
         db.session.commit()
 
         flash("Account created, you can sign in now.", "success")

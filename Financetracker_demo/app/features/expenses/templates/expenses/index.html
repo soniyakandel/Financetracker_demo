@@ -2,47 +2,34 @@
 {% block title %}Expenses - Finance Tracker{% endblock %}
 {% block page_title %}Expenses{% endblock %}
 {% block content %}
-  <div class="page-actions">
-    <p class="muted">Total spent: <strong>Rs {{ total }}</strong></p>
-    <a class="btn btn--primary" href="{{ url_for('expenses.create') }}">Add expense</a>
-  </div>
-  <div class="card">
-    {% if expenses %}
-      <div class="table-wrap">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Category</th>
-              <th>Date</th>
-              <th class="table__num">Amount</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for expense in expenses %}
-              <tr>
-                <td>{{ expense.title }}</td>
-                <td><span class="badge">{{ expense.category }}</span></td>
-                <td>{{ expense.date.strftime("%d %b %Y") }}</td>
-                <td class="table__num">Rs {{ expense.amount }}</td>
-                <td class="table__actions">
-                  <a class="btn btn--ghost btn--sm" href="{{ url_for('expenses.edit', expense_id=expense.id) }}">Edit</a>
-                  <form method="post" action="{{ url_for('expenses.delete', expense_id=expense.id) }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn--danger btn--sm" data-confirm="Delete this expense?">Delete</button>
-                  </form>
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    {% else %}
-      <div class="empty">
-        <p class="empty__title">Nothing here yet</p>
-        <p class="empty__text">Add your first expense to get started.</p>
-      </div>
-    {% endif %}
-  </div>
+  <p>Total spent: <strong>Rs {{ total }}</strong></p>
+  <a class="btn" href="{{ url_for('expenses.create') }}">Add expense</a>
+  {% if expenses %}
+    <table>
+      <tr>
+        <th>Title</th>
+        <th>Category</th>
+        <th>Date</th>
+        <th>Amount</th>
+        <th></th>
+      </tr>
+      {% for expense in expenses %}
+        <tr>
+          <td>{{ expense.title }}</td>
+          <td>{% if expense.category %}{{ expense.category.icon }} {{ expense.category.name }}{% endif %}</td>
+          <td>{{ expense.date.strftime("%d %b %Y") }}</td>
+          <td>Rs {{ expense.amount }}</td>
+          <td>
+            <a href="{{ url_for('expenses.edit', expense_id=expense.id) }}">Edit</a>
+            <form method="post" action="{{ url_for('expenses.delete', expense_id=expense.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" data-confirm="Delete this expense?">Delete</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p>Nothing here yet. Add your first expense.</p>
+  {% endif %}
 {% endblock %}

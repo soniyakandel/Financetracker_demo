@@ -9,5 +9,8 @@ class ExpenseForm(FlaskForm):
         "Amount", places=2, validators=[DataRequired(), NumberRange(min=0.01)]
     )
     date = DateField("Date", validators=[DataRequired()])
-    category = SelectField("Category", validators=[DataRequired()])
+    category_id = SelectField("Category", coerce=int, validators=[DataRequired()])
     submit = SubmitField("Save")
+
+    def set_category_choices(self, categories):
+        self.category_id.choices = [(c.id, c.icon + " " + c.name) for c in categories]
