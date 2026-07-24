@@ -6,3 +6,4 @@ from app.models.goal import GoalContribution, SavingsGoal
 from app.models.recurring import FREQUENCIES, RecurringExpense
 from app.models.security import LoginAttempt, OtpCode
 from app.models.audit import AuditLog
+from app.models.session import UserSession

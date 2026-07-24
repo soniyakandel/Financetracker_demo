@@ -1,0 +1,39 @@
+{% extends "layouts/auth.html" %}
+{% block title %}Two-step verification - Finance Tracker{% endblock %}
+{% block auth_title %}Check your code{% endblock %}
+{% block auth_subtitle %}
+  We sent a six digit code for <strong>{{ user.email }}</strong>. It is valid for
+  {{ config.OTP_VALID_MINUTES }} minutes and can only be used once.
+{% endblock %}
+{% block auth_body %}
+  <form method="post" class="form" novalidate>
+    {{ form.hidden_tag() }}
+    <div class="field">
+      {{ form.code.label(class="field__label") }}
+      {{ form.code(
+          class="input otp-input" ~ (" input--error" if form.code.errors else ""),
+          inputmode="numeric",
+          autocomplete="one-time-code",
+          maxlength="6",
+          placeholder="000000",
+          **{"data-otp-input": "true"}) }}
+      {% if form.code.errors %}
+        <ul class="field__errors">
+          {% for error in form.code.errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+      {% endif %}
+      <p class="field__hint">
+        After {{ config.OTP_MAX_ATTEMPTS }} wrong tries this code stops working and
+        you will need a new one.
+      </p>
+    </div>
+    {{ form.submit(class="btn btn--block") }}
+  </form>
+  <form method="post" action="{{ url_for('auth.resend_otp') }}" class="form" style="margin-top: 16px;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn btn--ghost btn--block">Send me a new code</button>
+  </form>
+{% endblock %}
+{% block auth_foot %}
+  Not you? <a href="{{ url_for('auth.login') }}">Start again</a>
+{% endblock %}
