@@ -37,7 +37,7 @@ def login():
         user = User.query.filter_by(email=form.email.data.lower().strip()).first()
         if user and user.check_password(form.password.data):
             login_user(user)
-            return redirect(url_for("expenses.index"))
+            return redirect(url_for("dashboard.index"))
         flash("Email or password is not correct.", "danger")
     return render_template("auth/login.html", form=form)
 

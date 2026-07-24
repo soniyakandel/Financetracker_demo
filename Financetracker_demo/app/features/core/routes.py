@@ -7,5 +7,5 @@ from app.features.core import core_bp
 @core_bp.route("/")
 def landing():
     if current_user.is_authenticated:
-        return redirect(url_for("expenses.index"))
+        return redirect(url_for("dashboard.index"))
     return render_template("core/landing.html")

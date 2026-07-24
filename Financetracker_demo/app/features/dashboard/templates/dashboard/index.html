@@ -1,0 +1,50 @@
+{% extends "layouts/app.html" %}
+{% block title %}Dashboard - Finance Tracker{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}
+  <p class="topbar__sub">{{ stats.month_label }} at a glance</p>
+{% endblock %}
+{% block content %}
+  <div class="grid grid--4">
+    <div class="stat stat--income">
+      <p class="stat__label">Money in</p>
+      <p class="stat__value">{{ stats.income|money }}</p>
+      <p class="stat__meta">
+        {% if stats.income_change is none %}
+          No figure for last month
+        {% elif stats.income_change >= 0 %}
+          {{ stats.income_change }}% more than last month
+        {% else %}
+          {{ 0 - stats.income_change }}% less than last month
+        {% endif %}
+      </p>
+    </div>
+    <div class="stat stat--expense">
+      <p class="stat__label">Money out</p>
+      <p class="stat__value">{{ stats.expense|money }}</p>
+      <p class="stat__meta">
+        {% if stats.expense_change is none %}
+          No figure for last month
+        {% elif stats.expense_change > 0 %}
+          {{ stats.expense_change }}% more than last month
+        {% elif stats.expense_change < 0 %}
+          {{ 0 - stats.expense_change }}% less - nicely done
+        {% else %}
+          The same as last month
+        {% endif %}
+      </p>
+    </div>
+    <div class="stat stat--balance">
+      <p class="stat__label">Balance this month</p>
+      <p class="stat__value">{{ stats.balance|money }}</p>
+      <p class="stat__meta">
+        {{ "You are in surplus" if stats.balance >= 0 else "You are overspending" }}
+      </p>
+    </div>
+    <div class="stat stat--saved">
+      <p class="stat__label">Put into goals</p>
+      <p class="stat__value">{{ stats.saved|money }}</p>
+      <p class="stat__meta">Across all your savings goals</p>
+    </div>
+  </div>
+{% endblock %}
