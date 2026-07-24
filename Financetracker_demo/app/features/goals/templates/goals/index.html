@@ -1,0 +1,102 @@
+{% extends "layouts/app.html" %}
+{% block title %}Savings goals - Finance Tracker{% endblock %}
+{% block page_title %}Savings goals{% endblock %}
+{% block page_subtitle %}
+  <p class="topbar__sub">{{ goals|length }} goal(s) on the go</p>
+{% endblock %}
+{% block content %}
+  <div class="section-head">
+    <h2 class="card__title">Your goals</h2>
+    <a class="btn" href="{{ url_for('goals.create') }}">New goal</a>
+  </div>
+  {% if goals %}
+    <div class="grid grid--2">
+      {% for goal in goals %}
+        <article class="card">
+          <div class="card__head">
+            <div>
+              <h3 class="card__title">{{ goal.title }}</h3>
+              {% if goal.target_date %}
+                <p class="card__hint">Target date {{ goal.target_date|short_date }}</p>
+              {% endif %}
+            </div>
+            {% if goal.is_achieved %}
+              <span class="badge badge--ok">Achieved</span>
+            {% else %}
+              <span class="badge badge--info">{{ goal.percent_complete }}%</span>
+            {% endif %}
+          </div>
+          <p style="font-family: var(--font-num); font-size: 20px; font-weight: 650;">
+            {{ goal.saved_amount|money }}
+            <span style="color: var(--ink-soft); font-size: 14px;">of {{ goal.target_amount|money }}</span>
+          </p>
+          <div class="progress" style="margin: 12px 0 6px;">
+            <div class="progress__bar" style="width: {{ goal.percent_complete }}%"
+                 role="progressbar" aria-valuenow="{{ goal.percent_complete }}"
+                 aria-valuemin="0" aria-valuemax="100"
+                 aria-label="{{ goal.title }} progress"></div>
+          </div>
+          <p class="card__hint">
+            {% if goal.is_achieved %}
+              Target reached. Anything extra is a bonus.
+            {% else %}
+              {{ goal.remaining_amount|money }} still to go
+            {% endif %}
+          </p>
+          {% if goal.note %}<p class="card__hint" style="margin-top:8px;">{{ goal.note }}</p>{% endif %}
+          <form method="post" action="{{ url_for('goals.contribute', goal_id=goal.id) }}"
+                class="form" style="margin-top:16px;">
+            {{ contribution_form.hidden_tag() }}
+            <div class="form-row">
+              <div class="field">
+                <label class="field__label" for="amount-{{ goal.id }}">Add amount</label>
+                <input class="input" type="number" step="0.01" min="0.01" name="amount"
+                       id="amount-{{ goal.id }}" placeholder="500.00" required>
+              </div>
+              <div class="field">
+                <label class="field__label" for="added_on-{{ goal.id }}">Date</label>
+                <input class="input" type="date" name="added_on" id="added_on-{{ goal.id }}"
+                       value="{{ today }}" required>
+              </div>
+            </div>
+            <div class="btn-row">
+              <button type="submit" class="btn btn--sm">Add to goal</button>
+              <a class="btn btn--ghost btn--sm" href="{{ url_for('goals.edit', goal_id=goal.id) }}">Edit</a>
+            </div>
+          </form>
+          <form method="post" action="{{ url_for('goals.delete', goal_id=goal.id) }}"
+                style="margin-top:8px;"
+                data-confirm="Delete the goal &quot;{{ goal.title }}&quot; and its contributions?">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn--danger btn--sm">Delete goal</button>
+          </form>
+          {% if goal.contributions %}
+            <details style="margin-top:12px;">
+              <summary class="card__hint">{{ goal.contributions|length }} contribution(s)</summary>
+              <ul class="timeline" style="margin-top:8px;">
+                {% for entry in goal.contributions[:6] %}
+                  <li class="timeline__item">
+                    <span class="timeline__dot"></span>
+                    <span>{{ entry.amount|money }}{% if entry.note %} - {{ entry.note }}{% endif %}</span>
+                    <span class="timeline__when">{{ entry.added_on|short_date }}</span>
+                  </li>
+                {% endfor %}
+              </ul>
+            </details>
+          {% endif %}
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card">
+      <div class="empty">
+        <div class="empty__icon" aria-hidden="true">◎</div>
+        <p class="empty__title">No savings goals yet</p>
+        <p>Set a target - a laptop, a trip, an emergency fund - and watch it fill up.</p>
+        <div class="btn-row" style="justify-content:center; margin-top:16px;">
+          <a class="btn" href="{{ url_for('goals.create') }}">Create your first goal</a>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "layouts/app.html" %}
+{% from "partials/_forms.html" import field %}
+{% set editing = goal is not none %}
+{% block title %}{{ "Edit" if editing else "New" }} goal - Finance Tracker{% endblock %}
+{% block page_title %}{{ "Edit goal" if editing else "New savings goal" }}{% endblock %}
+{% block page_subtitle %}
+  <p class="topbar__sub">Set a target and add to it whenever you can.</p>
+{% endblock %}
+{% block content %}
+  <div class="card" style="max-width: 560px;">
+    <form method="post" class="form" novalidate>
+      {{ form.hidden_tag() }}
+      {{ field(form.title, autofocus=true, hint="For example: New laptop, Emergency fund") }}
+      <div class="form-row">
+        {{ field(form.target_amount) }}
+        {{ field(form.target_date, hint="Optional") }}
+      </div>
+      {{ field(form.note, hint="Optional - why does this goal matter?") }}
+      <div class="btn-row">
+        {{ form.submit(class="btn") }}
+        <a class="btn btn--ghost" href="{{ url_for('goals.index') }}">Cancel</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}
