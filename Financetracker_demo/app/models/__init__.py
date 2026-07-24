@@ -4,3 +4,5 @@ from app.models.transaction import EXPENSE, INCOME, TRANSACTION_TYPES, Transacti
 from app.models.budget import Budget
 from app.models.goal import GoalContribution, SavingsGoal
 from app.models.recurring import FREQUENCIES, RecurringExpense
+from app.models.security import LoginAttempt, OtpCode
+from app.models.audit import AuditLog
