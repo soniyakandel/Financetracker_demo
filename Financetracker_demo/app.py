@@ -1,11 +1,12 @@
 from datetime import datetime
 
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 
 CATEGORIES = ["Food", "Transport", "Shopping", "Bills", "Other"]
 
 app = Flask(__name__)
+app.config["SECRET_KEY"] = "secret123"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///site.db"
 
 db = SQLAlchemy(app)
@@ -58,8 +59,25 @@ def register():
         )
         db.session.add(user)
         db.session.commit()
-        return redirect(url_for("home"))
+        return redirect(url_for("login"))
     return render_template("register.html")
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        user = User.query.filter_by(email=request.form["email"]).first()
+        if user and user.password == request.form["password"]:
+            session["user_id"] = user.id
+            return redirect(url_for("home"))
+        return render_template("login.html", error="Wrong email or password")
+    return render_template("login.html")
+
+
+@app.route("/logout")
+def logout():
+    session.pop("user_id", None)
+    return redirect(url_for("login"))
 
 
 @app.route("/edit/<int:expense_id>", methods=["GET", "POST"])
