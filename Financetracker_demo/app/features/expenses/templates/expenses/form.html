@@ -1,18 +1,26 @@
 {% extends "layouts/app.html" %}
 {% from "partials/_forms.html" import field, select_field %}
-{% block title %}{% if transaction %}Edit{% else %}Add{% endif %} transaction{% endblock %}
-{% block page_title %}{% if transaction %}Edit transaction{% else %}Add transaction{% endif %}{% endblock %}
+{% set editing = transaction is not none %}
+{% block title %}{{ "Edit" if editing else "New" }} transaction - Finance Tracker{% endblock %}
+{% block page_title %}{{ "Edit transaction" if editing else "Add a transaction" }}{% endblock %}
+{% block page_subtitle %}
+  <p class="topbar__sub">Expenses need a category; income does not.</p>
+{% endblock %}
 {% block content %}
-  <form method="post" novalidate>
-    {{ form.hidden_tag() }}
-    {{ select_field(form.type) }}
-    {{ field(form.amount, autofocus=True) }}
-    {{ select_field(form.category_id) }}
-    {{ field(form.spent_on) }}
-    {{ field(form.note) }}
-    <div class="form-actions">
-      {{ form.submit(class="btn") }}
-      <a class="btn btn--ghost" href="{{ url_for('expenses.index') }}">Cancel</a>
-    </div>
-  </form>
+  <div class="card" style="max-width: 620px;">
+    <form method="post" class="form" novalidate>
+      {{ form.hidden_tag() }}
+      {{ select_field(form.type) }}
+      <div class="form-row">
+        {{ field(form.amount, hint="Use numbers only, for example 1250.00") }}
+        {{ field(form.spent_on) }}
+      </div>
+      {{ select_field(form.category_id, hint="Choose the category this belongs to.") }}
+      {{ field(form.note, hint="Optional - what was it for? (up to 200 characters)") }}
+      <div class="btn-row">
+        {{ form.submit(class="btn") }}
+        <a class="btn btn--ghost" href="{{ url_for('expenses.index') }}">Cancel</a>
+      </div>
+    </form>
+  </div>
 {% endblock %}

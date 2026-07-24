@@ -1,42 +1,151 @@
 {% extends "layouts/app.html" %}
+{% from "partials/_pagination.html" import pagination as page_links %}
 {% block title %}Transactions - Finance Tracker{% endblock %}
 {% block page_title %}Transactions{% endblock %}
+{% block page_subtitle %}
+  <p class="topbar__sub">Every expense and income entry on your account</p>
+{% endblock %}
 {% block content %}
-  <p>
-    Income: <strong>Rs {{ earned }}</strong> |
-    Expense: <strong>Rs {{ spent }}</strong> |
-    Balance: <strong>Rs {{ earned - spent }}</strong>
-  </p>
-  <a class="btn" href="{{ url_for('expenses.create') }}">Add expense</a>
-  <a class="btn btn--ghost" href="{{ url_for('expenses.create', type='income') }}">Add income</a>
-  {% if transactions %}
-    <table>
-      <tr>
-        <th>Date</th>
-        <th>Type</th>
-        <th>Category</th>
-        <th>Note</th>
-        <th>Amount</th>
-        <th></th>
-      </tr>
-      {% for t in transactions %}
-        <tr>
-          <td>{{ t.spent_on.strftime("%d %b %Y") }}</td>
-          <td>{{ t.type }}</td>
-          <td>{% if t.category %}{{ t.category.icon }} {{ t.category.name }}{% endif %}</td>
-          <td>{{ t.note or "" }}</td>
-          <td>Rs {{ t.amount }}</td>
-          <td>
-            <a href="{{ url_for('expenses.edit', transaction_id=t.id) }}">Edit</a>
-            <form method="post" action="{{ url_for('expenses.delete', transaction_id=t.id) }}">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" data-confirm="Delete this transaction?">Delete</button>
-            </form>
-          </td>
-        </tr>
-      {% endfor %}
-    </table>
-  {% else %}
-    <p>Nothing here yet.</p>
-  {% endif %}
+  <div class="grid grid--3" style="margin-bottom: 24px;">
+    <div class="stat stat--income">
+      <p class="stat__label">Money in</p>
+      <p class="stat__value">{{ totals.income|money }}</p>
+      <p class="stat__meta">Across {{ totals.count }} matching entries</p>
+    </div>
+    <div class="stat stat--expense">
+      <p class="stat__label">Money out</p>
+      <p class="stat__value">{{ totals.expense|money }}</p>
+      <p class="stat__meta">Filtered total</p>
+    </div>
+    <div class="stat stat--balance">
+      <p class="stat__label">Net</p>
+      <p class="stat__value">{{ totals.net|money }}</p>
+      <p class="stat__meta">{{ "In surplus" if totals.net >= 0 else "Spending more than earning" }}</p>
+    </div>
+  </div>
+  <div class="card">
+    <form method="get" class="filters">
+      <div class="field">
+        <label class="field__label" for="start">From</label>
+        <input class="input" type="date" id="start" name="start" value="{{ filters.start or '' }}">
+      </div>
+      <div class="field">
+        <label class="field__label" for="end">To</label>
+        <input class="input" type="date" id="end" name="end" value="{{ filters.end or '' }}">
+      </div>
+      <div class="field">
+        <label class="field__label" for="category">Category</label>
+        <select class="select" id="category" name="category">
+          <option value="0">All categories</option>
+          {% for category in categories %}
+            <option value="{{ category.id }}" {% if filters.category == category.id %}selected{% endif %}>
+              {{ category.icon }} {{ category.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label class="field__label" for="type">Type</label>
+        <select class="select" id="type" name="type">
+          <option value="">Everything</option>
+          <option value="expense" {% if filters.type == 'expense' %}selected{% endif %}>Expenses only</option>
+          <option value="income" {% if filters.type == 'income' %}selected{% endif %}>Income only</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field__label" for="search">Search note</label>
+        <input class="input" type="search" id="search" name="search"
+               value="{{ filters.search }}" maxlength="50" placeholder="e.g. lunch">
+      </div>
+      <div class="field">
+        <label class="field__label" for="sort">Sort by</label>
+        <select class="select" id="sort" name="sort">
+          <option value="newest"  {% if filters.sort == 'newest'  %}selected{% endif %}>Newest first</option>
+          <option value="oldest"  {% if filters.sort == 'oldest'  %}selected{% endif %}>Oldest first</option>
+          <option value="highest" {% if filters.sort == 'highest' %}selected{% endif %}>Highest amount</option>
+          <option value="lowest"  {% if filters.sort == 'lowest'  %}selected{% endif %}>Lowest amount</option>
+        </select>
+      </div>
+      <div class="btn-row">
+        <button type="submit" class="btn">Apply</button>
+        <a class="btn btn--ghost" href="{{ url_for('expenses.index') }}">Reset</a>
+      </div>
+    </form>
+  </div>
+  <div class="card">
+    <div class="card__head">
+      <h2 class="card__title">History</h2>
+      <div class="btn-row">
+        <a class="btn btn--ghost" href="{{ url_for('expenses.create', type='income') }}">Add income</a>
+        <a class="btn" href="{{ url_for('expenses.create') }}">Add expense</a>
+      </div>
+    </div>
+    {% if transactions %}
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Category</th>
+              <th scope="col">Note</th>
+              <th scope="col" class="num">Amount</th>
+              <th scope="col"><span class="visually-hidden">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in transactions %}
+              <tr>
+                <td>{{ item.spent_on|short_date }}</td>
+                <td>
+                  {% if item.category %}
+                    <span class="badge" style="background: {{ item.category.colour }}1a; color: {{ item.category.colour }};">
+                      {{ item.category.icon }} {{ item.category.name }}
+                    </span>
+                  {% else %}
+                    <span class="badge badge--ok">Income</span>
+                  {% endif %}
+                  {% if item.is_auto_generated %}
+                    <span class="badge badge--info" title="Created from a recurring rule">↻</span>
+                  {% endif %}
+                </td>
+                <td class="wrap">{{ item.note or "-" }}</td>
+                <td class="num {{ 'amount--out' if item.is_expense else 'amount--in' }}">
+                  {{ "-" if item.is_expense else "+" }}{{ item.amount|money }}
+                </td>
+                <td>
+                  <div class="btn-row">
+                    <a class="btn btn--ghost btn--sm"
+                       href="{{ url_for('expenses.edit', transaction_id=item.id) }}">Edit</a>
+                    <form method="post" class="inline-form"
+                          action="{{ url_for('expenses.delete', transaction_id=item.id) }}"
+                          data-confirm="Delete this {{ item.type }} of {{ item.amount }}?">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn--danger btn--sm">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {{ page_links(pagination, 'expenses.index', {
+        'start': request.args.get('start', ''),
+        'end': request.args.get('end', ''),
+        'category': request.args.get('category', ''),
+        'type': request.args.get('type', ''),
+        'search': request.args.get('search', ''),
+        'sort': request.args.get('sort', '')
+      }) }}
+    {% else %}
+      <div class="empty">
+        <div class="empty__icon" aria-hidden="true">≡</div>
+        <p class="empty__title">Nothing to show</p>
+        <p>No transactions match these filters yet.</p>
+        <div class="btn-row" style="justify-content: center; margin-top: 16px;">
+          <a class="btn" href="{{ url_for('expenses.create') }}">Add a transaction</a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
 {% endblock %}

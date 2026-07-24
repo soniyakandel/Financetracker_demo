@@ -1,8 +1,9 @@
-from flask import flash, redirect, render_template, request, url_for
+from flask import current_app, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from app.extensions import db
 from app.features.expenses import expenses_bp
+from app.features.expenses.filters import build_query, read_filters, summarise
 from app.features.expenses.forms import TransactionForm
 from app.models.category import Category
 from app.models.transaction import EXPENSE, INCOME, Transaction
@@ -20,18 +21,20 @@ def _user_categories():
 @expenses_bp.route("/")
 @login_required
 def index():
-    transactions = (
-        Transaction.query.filter_by(user_id=current_user.id)
-        .order_by(Transaction.spent_on.desc(), Transaction.id.desc())
-        .all()
-    )
-    spent = sum(t.amount for t in transactions if t.type == EXPENSE)
-    earned = sum(t.amount for t in transactions if t.type == INCOME)
+    filters = read_filters(request.args)
+    query = build_query(filters)
+
+    page = request.args.get("page", 1, type=int)
+    per_page = current_app.config["ITEMS_PER_PAGE"]
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+
     return render_template(
         "expenses/index.html",
-        transactions=transactions,
-        spent=spent,
-        earned=earned,
+        transactions=pagination.items,
+        pagination=pagination,
+        filters=filters,
+        totals=summarise(filters),
+        categories=_user_categories(),
     )
 
 
@@ -55,7 +58,9 @@ def create():
         )
         db.session.add(transaction)
         db.session.commit()
-        flash("Transaction saved.", "success")
+
+        word = "Expense" if transaction.type == EXPENSE else "Income"
+        flash(f"{word} of {transaction.amount} saved.", "success")
         return redirect(url_for("expenses.index"))
 
     return render_template("expenses/form.html", form=form, transaction=None)
@@ -79,6 +84,7 @@ def edit(transaction_id):
         transaction.spent_on = form.spent_on.data
         transaction.note = (form.note.data or "").strip() or None
         db.session.commit()
+
         flash("Transaction updated.", "success")
         return redirect(url_for("expenses.index"))
 
@@ -89,7 +95,9 @@ def edit(transaction_id):
 @login_required
 def delete(transaction_id):
     transaction = get_owned_or_404(Transaction, transaction_id)
+
     db.session.delete(transaction)
     db.session.commit()
+
     flash("Transaction deleted.", "success")
     return redirect(url_for("expenses.index"))
