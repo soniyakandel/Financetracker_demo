@@ -6,6 +6,7 @@ from app.features.expenses import expenses_bp
 from app.features.expenses.forms import TransactionForm
 from app.models.category import Category
 from app.models.transaction import EXPENSE, INCOME, Transaction
+from app.security.decorators import get_owned_or_404
 
 
 def _user_categories():
@@ -63,7 +64,7 @@ def create():
 @expenses_bp.route("/<int:transaction_id>/edit", methods=["GET", "POST"])
 @login_required
 def edit(transaction_id):
-    transaction = Transaction.query.get_or_404(transaction_id)
+    transaction = get_owned_or_404(Transaction, transaction_id)
 
     form = TransactionForm(obj=transaction)
     form.set_category_choices(_user_categories())
@@ -87,7 +88,7 @@ def edit(transaction_id):
 @expenses_bp.route("/<int:transaction_id>/delete", methods=["POST"])
 @login_required
 def delete(transaction_id):
-    transaction = Transaction.query.get_or_404(transaction_id)
+    transaction = get_owned_or_404(Transaction, transaction_id)
     db.session.delete(transaction)
     db.session.commit()
     flash("Transaction deleted.", "success")

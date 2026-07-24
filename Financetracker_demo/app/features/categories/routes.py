@@ -9,6 +9,7 @@ from app.features.categories import categories_bp
 from app.features.categories.forms import CategoryForm
 from app.models.category import Category
 from app.models.transaction import EXPENSE, Transaction
+from app.security.decorators import get_owned_or_404
 
 
 def _spend_by_category():
@@ -77,7 +78,7 @@ def create():
 @categories_bp.route("/<int:category_id>/edit", methods=["GET", "POST"])
 @login_required
 def edit(category_id):
-    category = Category.query.get_or_404(category_id)
+    category = get_owned_or_404(Category, category_id)
     form = CategoryForm(obj=category)
 
     if form.validate_on_submit():
@@ -108,7 +109,7 @@ def edit(category_id):
 @categories_bp.route("/<int:category_id>/delete", methods=["POST"])
 @login_required
 def delete(category_id):
-    category = Category.query.get_or_404(category_id)
+    category = get_owned_or_404(Category, category_id)
 
     if category.is_default:
         flash("The standard categories cannot be deleted.", "warning")
