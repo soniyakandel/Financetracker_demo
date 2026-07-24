@@ -1,4 +1,4 @@
-from flask import flash, redirect, render_template, url_for
+from flask import current_app, flash, redirect, render_template, url_for
 from flask_login import login_required, login_user, logout_user
 
 from app.extensions import db
@@ -6,6 +6,7 @@ from app.features.auth import auth_bp
 from app.features.auth.forms import LoginForm, RegisterForm
 from app.models.audit import (
     EVENT_LOGIN_FAILED,
+    EVENT_LOGIN_LOCKED,
     EVENT_LOGIN_SUCCESS,
     EVENT_LOGOUT,
     EVENT_REGISTER,
@@ -14,6 +15,19 @@ from app.models.category import Category
 from app.models.security import LoginAttempt
 from app.models.user import User
 from app.security.audit import client_ip, log_event
+
+
+GENERIC_FAILURE = "Email or password is not correct."
+
+
+def _handle_failed_password(user, email):
+    if user is None:
+        return
+
+    user.failed_attempts = (user.failed_attempts or 0) + 1
+    if user.failed_attempts >= current_app.config["MAX_LOGIN_ATTEMPTS"]:
+        user.lock()
+        log_event(EVENT_LOGIN_LOCKED, detail=email, user=user)
 
 
 @auth_bp.route("/register", methods=["GET", "POST"])
@@ -45,17 +59,29 @@ def login():
     if form.validate_on_submit():
         email = form.email.data.lower().strip()
         user = User.query.filter_by(email=email).first()
+        if user and user.is_currently_locked:
+            LoginAttempt.record(email, client_ip(), False)
+            log_event(EVENT_LOGIN_LOCKED, detail=email, user=user, commit=True)
+            flash(
+                "This account is locked for a few minutes after too many "
+                "failed sign-ins. Please try again later.",
+                "danger",
+            )
+            return render_template("auth/login.html", form=form)
+
         password_ok = bool(user and user.check_password(form.password.data))
 
         LoginAttempt.record(email, client_ip(), password_ok)
 
         if password_ok:
+            user.unlock()
             login_user(user, remember=bool(form.remember_me.data))
             log_event(EVENT_LOGIN_SUCCESS, user=user, commit=True)
             return redirect(url_for("dashboard.index"))
 
+        _handle_failed_password(user, email)
         log_event(EVENT_LOGIN_FAILED, detail=email, commit=True)
-        flash("Email or password is not correct.", "danger")
+        flash(GENERIC_FAILURE, "danger")
     return render_template("auth/login.html", form=form)
 
 
