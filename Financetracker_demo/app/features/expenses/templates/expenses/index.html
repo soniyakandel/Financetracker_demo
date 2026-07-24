@@ -21,7 +21,10 @@
         <td>{{ expense.date.strftime("%d %b %Y") }}</td>
         <td>
             <a href="{{ url_for('expenses.edit', expense_id=expense.id) }}">edit</a>
-            <a href="{{ url_for('expenses.delete', expense_id=expense.id) }}">delete</a>
+            <form method="POST" action="{{ url_for('expenses.delete', expense_id=expense.id) }}" style="display: inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit">delete</button>
+            </form>
         </td>
     </tr>
     {% endfor %}

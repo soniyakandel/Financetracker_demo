@@ -2,17 +2,15 @@
 {% block content %}
 <h1>{% if expense %}Edit Expense{% else %}Add Expense{% endif %}</h1>
 <form method="POST">
-    <p>Title: <input type="text" name="title" value="{{ expense.title if expense else '' }}"></p>
-    <p>Amount: <input type="text" name="amount" value="{{ expense.amount if expense else '' }}"></p>
-    <p>Date: <input type="date" name="date" value="{{ expense.date if expense else '' }}"></p>
-    <p>Category:
-        <select name="category">
-            {% for category in categories %}
-            <option value="{{ category }}" {% if expense and expense.category == category %}selected{% endif %}>{{ category }}</option>
-            {% endfor %}
-        </select>
-    </p>
-    <button type="submit">Save</button>
+    {{ form.hidden_tag() }}
+    <p>{{ form.title.label }} {{ form.title() }}</p>
+    {% for error in form.title.errors %}<span style="color: red;">{{ error }}</span>{% endfor %}
+    <p>{{ form.amount.label }} {{ form.amount() }}</p>
+    {% for error in form.amount.errors %}<span style="color: red;">{{ error }}</span>{% endfor %}
+    <p>{{ form.date.label }} {{ form.date() }}</p>
+    {% for error in form.date.errors %}<span style="color: red;">{{ error }}</span>{% endfor %}
+    <p>{{ form.category.label }} {{ form.category() }}</p>
+    {{ form.submit() }}
 </form>
 <a href="{{ url_for('expenses.index') }}">Back</a>
 {% endblock %}
