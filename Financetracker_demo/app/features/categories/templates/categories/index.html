@@ -7,8 +7,11 @@
 {% block content %}
   <div class="card">
     <div class="card__head">
-      <h2 class="card__title">Your spending categories</h2>
-      <p class="card__hint">The ten standard categories are set up for every new account.</p>
+      <div>
+        <h2 class="card__title">Your spending categories</h2>
+        <p class="card__hint">The ten standard categories are set up for every new account.</p>
+      </div>
+      <a class="btn" href="{{ url_for('categories.create') }}">Add category</a>
     </div>
     <div class="table-wrap">
       <table class="table">
@@ -18,6 +21,7 @@
             <th scope="col">Type</th>
             <th scope="col" class="num">Total spent</th>
             <th scope="col" class="num">Share</th>
+            <th scope="col"><span class="visually-hidden">Actions</span></th>
           </tr>
         </thead>
         <tbody>
@@ -43,6 +47,20 @@
                 {% else %}
                   -
                 {% endif %}
+              </td>
+              <td>
+                <div class="btn-row">
+                  <a class="btn btn--ghost btn--sm"
+                     href="{{ url_for('categories.edit', category_id=category.id) }}">Edit</a>
+                  {% if not category.is_default %}
+                    <form method="post" class="inline-form"
+                          action="{{ url_for('categories.delete', category_id=category.id) }}"
+                          data-confirm="Delete the category &quot;{{ category.name }}&quot;?">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn--danger btn--sm">Delete</button>
+                    </form>
+                  {% endif %}
+                </div>
               </td>
             </tr>
           {% endfor %}
