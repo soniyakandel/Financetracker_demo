@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block layout %}
+  <main class="content" id="main">
+    <h1>{% block auth_title %}{% endblock %}</h1>
+    <p>{% block auth_subtitle %}{% endblock %}</p>
+    {% include "partials/_flash.html" %}
+    {% block auth_body %}{% endblock %}
+    <p>{% block auth_foot %}{% endblock %}</p>
+  </main>
+{% endblock %}

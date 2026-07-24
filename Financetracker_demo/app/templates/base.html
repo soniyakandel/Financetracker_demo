@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Finance Tracker{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    {% block head_extra %}{% endblock %}
 </head>
-<body>
-    <div class="container">
-        {% include "partials/_flash.html" %}
-        {% block content %}{% endblock %}
-    </div>
+<body class="{% block body_class %}{% endblock %}">
+    {% block layout %}{% endblock %}
+    {% block scripts %}{% endblock %}
 </body>
 </html>

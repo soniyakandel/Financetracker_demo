@@ -1,0 +1,9 @@
+<nav class="topnav">
+  <a href="{{ url_for('core.landing') }}"><strong>Finance Tracker</strong></a>
+  <a href="{{ url_for('expenses.index') }}">Expenses</a>
+  <span>{{ current_user.name }}</span>
+  <form method="post" action="{{ url_for('auth.logout') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit">Sign out</button>
+  </form>
+</nav>

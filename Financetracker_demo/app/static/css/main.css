@@ -38,3 +38,54 @@ input, select {
     padding: 6px;
     width: 250px;
 }
+.content {
+    padding-top: 10px;
+}
+.topnav {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 2px solid #2c6e49;
+}
+.topnav form {
+    display: inline;
+}
+.flash {
+    padding: 10px;
+    margin: 10px 0;
+    background: #e8f3ec;
+    border-left: 4px solid #2c6e49;
+}
+.flash--danger {
+    background: #fdecea;
+    border-left-color: #c0392b;
+}
+.field {
+    margin-bottom: 12px;
+}
+.field__label {
+    display: block;
+    font-weight: bold;
+}
+.field__errors {
+    color: #c0392b;
+    margin: 4px 0 0;
+    padding-left: 18px;
+}
+.btn {
+    display: inline-block;
+    background: #2c6e49;
+    color: #fff;
+    padding: 8px 14px;
+    border: none;
+    text-decoration: none;
+    cursor: pointer;
+}
+.btn--ghost {
+    background: #ddd;
+    color: #222;
+}
+.btn--danger {
+    background: #c0392b;
+}

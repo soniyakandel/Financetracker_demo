@@ -1,0 +1,39 @@
+{% macro field(f, hint=None, autofocus=False, autocomplete=None, extra_class="") %}
+  <div class="field">
+    {{ f.label(class="field__label") }}
+    {{ f(
+        class="input " ~ extra_class ~ (" input--error" if f.errors else ""),
+        autofocus=autofocus,
+        autocomplete=autocomplete,
+        **{"aria-describedby": f.id ~ "-help" if hint else ""}
+      ) }}
+    {% if hint %}<p class="field__hint" id="{{ f.id }}-help">{{ hint }}</p>{% endif %}
+    {% if f.errors %}
+      <ul class="field__errors">
+        {% for error in f.errors %}<li>{{ error }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+{% endmacro %}
+{% macro select_field(f, hint=None) %}
+  <div class="field">
+    {{ f.label(class="field__label") }}
+    {{ f(class="select" ~ (" select--error" if f.errors else "")) }}
+    {% if hint %}<p class="field__hint">{{ hint }}</p>{% endif %}
+    {% if f.errors %}
+      <ul class="field__errors">
+        {% for error in f.errors %}<li>{{ error }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+{% endmacro %}
+{% macro checkbox_field(f) %}
+  <div class="field">
+    <label class="checkbox">{{ f() }} <span>{{ f.label.text }}</span></label>
+    {% if f.errors %}
+      <ul class="field__errors">
+        {% for error in f.errors %}<li>{{ error }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+{% endmacro %}

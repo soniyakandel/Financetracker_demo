@@ -1,13 +1,16 @@
-{% extends "base.html" %}
-{% block content %}
-<h1>Login</h1>
-<form method="POST">
+{% extends "layouts/auth.html" %}
+{% from "partials/_forms.html" import field %}
+{% block title %}Sign in - Finance Tracker{% endblock %}
+{% block auth_title %}Welcome back{% endblock %}
+{% block auth_subtitle %}Sign in to see where your money went.{% endblock %}
+{% block auth_body %}
+  <form method="post" novalidate>
     {{ form.hidden_tag() }}
-    <p>{{ form.email.label }} {{ form.email() }}</p>
-    {% for error in form.email.errors %}<span style="color: red;">{{ error }}</span>{% endfor %}
-    <p>{{ form.password.label }} {{ form.password() }}</p>
-    {% for error in form.password.errors %}<span style="color: red;">{{ error }}</span>{% endfor %}
-    {{ form.submit() }}
-</form>
-<a href="{{ url_for('auth.register') }}">Create an account</a>
+    {{ field(form.email, autofocus=True, autocomplete="email") }}
+    {{ field(form.password, autocomplete="current-password") }}
+    {{ form.submit(class="btn btn--primary btn--block") }}
+  </form>
+{% endblock %}
+{% block auth_foot %}
+  New here? <a href="{{ url_for('auth.register') }}">Create an account</a>
 {% endblock %}

@@ -1,17 +1,18 @@
-{% extends "base.html" %}
-{% block content %}
-<h1>Create an account</h1>
-<form method="POST">
+{% extends "layouts/auth.html" %}
+{% from "partials/_forms.html" import field %}
+{% block title %}Create account - Finance Tracker{% endblock %}
+{% block auth_title %}Create your account{% endblock %}
+{% block auth_subtitle %}It takes less than a minute.{% endblock %}
+{% block auth_body %}
+  <form method="post" novalidate>
     {{ form.hidden_tag() }}
-    <p>{{ form.name.label }} {{ form.name() }}</p>
-    {% for error in form.name.errors %}<span style="color: red;">{{ error }}</span>{% endfor %}
-    <p>{{ form.email.label }} {{ form.email() }}</p>
-    {% for error in form.email.errors %}<span style="color: red;">{{ error }}</span>{% endfor %}
-    <p>{{ form.password.label }} {{ form.password() }}</p>
-    {% for error in form.password.errors %}<span style="color: red;">{{ error }}</span>{% endfor %}
-    <p>{{ form.confirm.label }} {{ form.confirm() }}</p>
-    {% for error in form.confirm.errors %}<span style="color: red;">{{ error }}</span>{% endfor %}
-    {{ form.submit() }}
-</form>
-<a href="{{ url_for('auth.login') }}">I already have an account</a>
+    {{ field(form.name, autofocus=True, autocomplete="name") }}
+    {{ field(form.email, autocomplete="email") }}
+    {{ field(form.password, autocomplete="new-password", extra_class="js-password") }}
+    {{ field(form.confirm, autocomplete="new-password") }}
+    {{ form.submit(class="btn btn--primary btn--block") }}
+  </form>
+{% endblock %}
+{% block auth_foot %}
+  Already registered? <a href="{{ url_for('auth.login') }}">Sign in</a>
 {% endblock %}

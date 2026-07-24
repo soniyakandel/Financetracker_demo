@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block layout %}
+  {% include "partials/_nav.html" %}
+  <main class="content" id="main">
+    <h1>{% block page_title %}{% endblock %}</h1>
+    {% block page_subtitle %}{% endblock %}
+    {% include "partials/_flash.html" %}
+    {% block content %}{% endblock %}
+  </main>
+{% endblock %}
