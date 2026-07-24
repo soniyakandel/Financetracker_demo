@@ -10,3 +10,4 @@ class Config:
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     ITEMS_PER_PAGE = 20
+    CURRENCY_SYMBOL = "Rs"

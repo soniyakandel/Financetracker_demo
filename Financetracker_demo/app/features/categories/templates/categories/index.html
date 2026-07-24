@@ -1,0 +1,53 @@
+{% extends "layouts/app.html" %}
+{% block title %}Categories - Finance Tracker{% endblock %}
+{% block page_title %}Categories{% endblock %}
+{% block page_subtitle %}
+  <p class="topbar__sub">{{ categories|length }} categories, {{ grand_total|money }} spent in total</p>
+{% endblock %}
+{% block content %}
+  <div class="card">
+    <div class="card__head">
+      <h2 class="card__title">Your spending categories</h2>
+      <p class="card__hint">The ten standard categories are set up for every new account.</p>
+    </div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Category</th>
+            <th scope="col">Type</th>
+            <th scope="col" class="num">Total spent</th>
+            <th scope="col" class="num">Share</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for category in categories %}
+            {% set spent = totals.get(category.id, 0) %}
+            <tr>
+              <th scope="row">
+                <span class="badge" style="background: {{ category.colour }}1a; color: {{ category.colour }};">
+                  {{ category.icon }} {{ category.name }}
+                </span>
+              </th>
+              <td>
+                {% if category.is_default %}
+                  <span class="badge">Standard</span>
+                {% else %}
+                  <span class="badge badge--info">Custom</span>
+                {% endif %}
+              </td>
+              <td class="num">{{ spent|money }}</td>
+              <td class="num">
+                {% if grand_total > 0 %}
+                  {{ ((spent / grand_total) * 100)|round(1) }}%
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}
