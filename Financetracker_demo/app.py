@@ -25,13 +25,18 @@ class Expense(db.Model):
     amount = db.Column(db.Float)
     date = db.Column(db.Date)
     category = db.Column(db.String(50))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
 
 
 @app.route("/")
 def home():
     if "user_id" not in session:
         return redirect(url_for("login"))
-    expenses = Expense.query.order_by(Expense.date.desc()).all()
+    expenses = (
+        Expense.query.filter_by(user_id=session["user_id"])
+        .order_by(Expense.date.desc())
+        .all()
+    )
     total = sum(expense.amount for expense in expenses)
     return render_template("index.html", expenses=expenses, total=total)
 
@@ -46,6 +51,7 @@ def add():
             amount=float(request.form["amount"]),
             date=datetime.strptime(request.form["date"], "%Y-%m-%d").date(),
             category=request.form["category"],
+            user_id=session["user_id"],
         )
         db.session.add(expense)
         db.session.commit()
