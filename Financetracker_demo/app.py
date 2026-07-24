@@ -11,6 +11,13 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///site.db"
 db = SQLAlchemy(app)
 
 
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80))
+    email = db.Column(db.String(120), unique=True)
+    password = db.Column(db.String(100))
+
+
 class Expense(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100))
@@ -39,6 +46,20 @@ def add():
         db.session.commit()
         return redirect(url_for("home"))
     return render_template("add.html", categories=CATEGORIES)
+
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        user = User(
+            name=request.form["name"],
+            email=request.form["email"],
+            password=request.form["password"],
+        )
+        db.session.add(user)
+        db.session.commit()
+        return redirect(url_for("home"))
+    return render_template("register.html")
 
 
 @app.route("/edit/<int:expense_id>", methods=["GET", "POST"])
