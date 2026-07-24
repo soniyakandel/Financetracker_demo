@@ -24,6 +24,20 @@ def reset_db_command():
     click.echo("Database reset.")
 
 
+@click.command("run-recurring")
+@with_appcontext
+def run_recurring_command():
+    from app.features.recurring.generator import generate_due_for
+    from app.models.user import User
+
+    total = 0
+    for user in User.query.all():
+        total += generate_due_for(user)
+
+    click.echo(f"{total} recurring expense(s) created.")
+
+
 def register_commands(app):
     app.cli.add_command(init_db_command)
     app.cli.add_command(reset_db_command)
+    app.cli.add_command(run_recurring_command)
