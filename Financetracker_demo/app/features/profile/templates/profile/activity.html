@@ -1,0 +1,47 @@
+{% extends "layouts/app.html" %}
+{% from "partials/_pagination.html" import pagination as page_links %}
+{% block title %}Security activity - Finance Tracker{% endblock %}
+{% block page_title %}Security activity{% endblock %}
+{% block page_subtitle %}
+  <p class="topbar__sub">Everything that has happened to your account</p>
+{% endblock %}
+{% block content %}
+  {% if failed_recently %}
+    <div class="flash flash--warning" style="margin-bottom: 24px;">
+      <span class="flash__icon" aria-hidden="true">▲</span>
+      <p class="flash__text">
+        There have been {{ failed_recently }} failed sign-in or code attempt(s) on this
+        account. If none of them were you, change your password.
+      </p>
+    </div>
+  {% endif %}
+  <div class="card">
+    <div class="card__head">
+      <h2 class="card__title">Event history</h2>
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('profile.sessions') }}">Active devices</a>
+    </div>
+    {% if entries %}
+      <ul class="timeline">
+        {% for entry in entries %}
+          <li class="timeline__item {% if entry.is_warning %}timeline__item--warning{% endif %}">
+            <span class="timeline__dot"></span>
+            <span>
+              <strong>{{ entry.label }}</strong>
+              {% if entry.detail %}<br><span class="card__hint">{{ entry.detail }}</span>{% endif %}
+              {% if entry.ip_address %}
+                <br><span class="card__hint">from {{ entry.ip_address }}</span>
+              {% endif %}
+            </span>
+            <span class="timeline__when">{{ entry.created_at|date_time }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+      {{ page_links(pagination, 'profile.activity') }}
+    {% else %}
+      <div class="empty">
+        <p class="empty__title">Nothing recorded yet</p>
+        <p>Sign-ins and account changes will be listed here.</p>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "layouts/app.html" %}
+{% from "partials/_forms.html" import field %}
+{% block title %}Edit profile - Finance Tracker{% endblock %}
+{% block page_title %}Edit profile{% endblock %}
+{% block page_subtitle %}<p class="topbar__sub">Your name and sign-in address</p>{% endblock %}
+{% block content %}
+  <div class="card" style="max-width: 520px;">
+    <form method="post" class="form" novalidate>
+      {{ form.hidden_tag() }}
+      {{ field(form.name, autofocus=true, autocomplete="name") }}
+      {{ field(form.email, autocomplete="email",
+               hint="You will use this address to sign in.") }}
+      <div class="btn-row">
+        {{ form.submit(class="btn") }}
+        <a class="btn btn--ghost" href="{{ url_for('profile.index') }}">Cancel</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

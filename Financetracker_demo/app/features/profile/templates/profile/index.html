@@ -1,0 +1,47 @@
+{% extends "layouts/app.html" %}
+{% block title %}Profile and security - Finance Tracker{% endblock %}
+{% block page_title %}Profile &amp; security{% endblock %}
+{% block page_subtitle %}<p class="topbar__sub">Your account details and how it is protected</p>{% endblock %}
+{% block content %}
+  <div class="card">
+    <div class="card__head">
+      <h2 class="card__title">Account details</h2>
+      <div class="btn-row">
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('profile.activity') }}">Security activity</a>
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('profile.sessions') }}">Active devices</a>
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('profile.change_password') }}">Change password</a>
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('profile.edit') }}">Edit</a>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="table">
+        <tbody>
+          <tr><th scope="row">Name</th><td>{{ current_user.name }}</td></tr>
+          <tr><th scope="row">Email</th><td>{{ current_user.email }}</td></tr>
+          <tr><th scope="row">Member since</th><td>{{ current_user.created_at|short_date }}</td></tr>
+          <tr>
+            <th scope="row">Last signed in</th>
+            <td>{{ current_user.last_login_at|date_time if current_user.last_login_at else "This is your first visit" }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Password last changed</th>
+            <td>{{ current_user.password_changed_at|date_time }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card__head">
+      <h2 class="card__title">How your account is protected</h2>
+    </div>
+    <ul class="rule-list">
+      <li>Your password is stored only as a salted one-way hash.</li>
+      <li>Every sign-in needs a six digit code as a second step.</li>
+      <li>Sessions end after {{ config.SESSION_IDLE_MINUTES }} minutes of inactivity,
+          and after {{ config.SESSION_ABSOLUTE_HOURS }} hours no matter what.</li>
+      <li>The account locks for {{ config.LOCKOUT_MINUTES }} minutes after
+          {{ config.MAX_LOGIN_ATTEMPTS }} failed sign-in attempts.</li>
+    </ul>
+  </div>
+{% endblock %}

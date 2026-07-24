@@ -1,0 +1,81 @@
+{% extends "layouts/app.html" %}
+{% block title %}Active devices - Finance Tracker{% endblock %}
+{% block page_title %}Active devices{% endblock %}
+{% block page_subtitle %}
+  <p class="topbar__sub">Everywhere your account is currently signed in</p>
+{% endblock %}
+{% block content %}
+  <div class="card">
+    <div class="card__head">
+      <div>
+        <h2 class="card__title">Signed in now</h2>
+        <p class="card__hint">
+          Sessions end by themselves after {{ config.SESSION_IDLE_MINUTES }} minutes of
+          inactivity, and after {{ config.SESSION_ABSOLUTE_HOURS }} hours in any case.
+        </p>
+      </div>
+      {% if live_sessions|length > 1 %}
+        <form method="post" action="{{ url_for('profile.revoke_other_sessions') }}"
+              data-confirm="Sign out every device except this one?">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn--danger btn--sm">Sign out all other devices</button>
+        </form>
+      {% endif %}
+    </div>
+    {% for record in live_sessions %}
+      <div class="device">
+        <span class="device__icon" aria-hidden="true">▣</span>
+        <div class="device__body">
+          <p class="device__name">
+            {{ record.device_label }}
+            {% if record.session_token == current_token %}
+              <span class="badge badge--ok">This device</span>
+            {% endif %}
+          </p>
+          <p class="device__meta">
+            IP {{ record.ip_address or "unknown" }} &middot;
+            signed in {{ record.created_at|date_time }} &middot;
+            last active {{ record.last_seen_at|time_ago }}
+          </p>
+          <p class="device__meta">Expires {{ record.expires_at|date_time }}</p>
+        </div>
+        <div class="device__action">
+          {% if record.session_token == current_token %}
+            <form method="post" action="{{ url_for('auth.logout') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn--ghost btn--sm">Sign out</button>
+            </form>
+          {% else %}
+            <form method="post"
+                  action="{{ url_for('profile.revoke_session', session_id=record.id) }}"
+                  data-confirm="Sign out {{ record.device_label }}?">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn--danger btn--sm">Revoke</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+  {% if ended_sessions %}
+    <div class="card">
+      <div class="card__head">
+        <h2 class="card__title">Recently ended</h2>
+        <p class="card__hint">Kept so you can spot anything you do not recognise.</p>
+      </div>
+      {% for record in ended_sessions %}
+        <div class="device">
+          <span class="device__icon" aria-hidden="true">▢</span>
+          <div class="device__body">
+            <p class="device__name">{{ record.device_label }}</p>
+            <p class="device__meta">
+              IP {{ record.ip_address or "unknown" }} &middot;
+              ended {{ (record.revoked_at or record.expires_at)|date_time }}
+              {% if record.revoked_reason %}({{ record.revoked_reason|replace("_", " ") }}){% endif %}
+            </p>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endblock %}

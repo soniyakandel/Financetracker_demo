@@ -6,6 +6,7 @@
   <a href="{{ url_for('recurring.index') }}">Recurring</a>
   <a href="{{ url_for('budgets.index') }}">Budgets</a>
   <a href="{{ url_for('goals.index') }}">Goals</a>
+  <a href="{{ url_for('profile.index') }}">Profile</a>
   <span>{{ current_user.name }}</span>
   <form method="post" action="{{ url_for('auth.logout') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
