@@ -1,14 +1,15 @@
 {% extends "layouts/app.html" %}
 {% from "partials/_forms.html" import field, select_field %}
-{% block title %}{% if expense %}Edit{% else %}Add{% endif %} expense{% endblock %}
-{% block page_title %}{% if expense %}Edit expense{% else %}Add expense{% endif %}{% endblock %}
+{% block title %}{% if transaction %}Edit{% else %}Add{% endif %} transaction{% endblock %}
+{% block page_title %}{% if transaction %}Edit transaction{% else %}Add transaction{% endif %}{% endblock %}
 {% block content %}
   <form method="post" novalidate>
     {{ form.hidden_tag() }}
-    {{ field(form.title, autofocus=True) }}
-    {{ field(form.amount) }}
-    {{ field(form.date) }}
+    {{ select_field(form.type) }}
+    {{ field(form.amount, autofocus=True) }}
     {{ select_field(form.category_id) }}
+    {{ field(form.spent_on) }}
+    {{ field(form.note) }}
     <div class="form-actions">
       {{ form.submit(class="btn") }}
       <a class="btn btn--ghost" href="{{ url_for('expenses.index') }}">Cancel</a>
