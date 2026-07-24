@@ -2,6 +2,7 @@ from datetime import datetime
 
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import check_password_hash, generate_password_hash
 
 CATEGORIES = ["Food", "Transport", "Shopping", "Bills", "Other"]
 
@@ -16,7 +17,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
     email = db.Column(db.String(120), unique=True)
-    password = db.Column(db.String(100))
+    password = db.Column(db.String(255))
 
 
 class Expense(db.Model):
@@ -65,7 +66,7 @@ def register():
         user = User(
             name=request.form["name"],
             email=request.form["email"],
-            password=request.form["password"],
+            password=generate_password_hash(request.form["password"]),
         )
         db.session.add(user)
         db.session.commit()
@@ -77,7 +78,7 @@ def register():
 def login():
     if request.method == "POST":
         user = User.query.filter_by(email=request.form["email"]).first()
-        if user and user.password == request.form["password"]:
+        if user and check_password_hash(user.password, request.form["password"]):
             session["user_id"] = user.id
             return redirect(url_for("home"))
         return render_template("login.html", error="Wrong email or password")
@@ -113,10 +114,6 @@ def delete(expense_id):
     db.session.delete(expense)
     db.session.commit()
     return redirect(url_for("home"))
-
-
-with app.app_context():
-    db.create_all()
 
 
 if __name__ == "__main__":
