@@ -29,6 +29,8 @@ class Expense(db.Model):
 
 @app.route("/")
 def home():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
     expenses = Expense.query.order_by(Expense.date.desc()).all()
     total = sum(expense.amount for expense in expenses)
     return render_template("index.html", expenses=expenses, total=total)
@@ -36,6 +38,8 @@ def home():
 
 @app.route("/add", methods=["GET", "POST"])
 def add():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
     if request.method == "POST":
         expense = Expense(
             title=request.form["title"],
@@ -82,6 +86,8 @@ def logout():
 
 @app.route("/edit/<int:expense_id>", methods=["GET", "POST"])
 def edit(expense_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
     expense = Expense.query.get(expense_id)
     if request.method == "POST":
         expense.title = request.form["title"]
@@ -95,6 +101,8 @@ def edit(expense_id):
 
 @app.route("/delete/<int:expense_id>")
 def delete(expense_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
     expense = Expense.query.get(expense_id)
     db.session.delete(expense)
     db.session.commit()
