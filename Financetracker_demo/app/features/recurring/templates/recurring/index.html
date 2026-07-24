@@ -1,0 +1,84 @@
+{% extends "layouts/app.html" %}
+{% block title %}Recurring expenses - Finance Tracker{% endblock %}
+{% block page_title %}Recurring expenses{% endblock %}
+{% block page_subtitle %}
+  <p class="topbar__sub">Bills that repeat, added to your history automatically</p>
+{% endblock %}
+{% block content %}
+  <div class="card">
+    <div class="card__head">
+      <div>
+        <h2 class="card__title">Your rules</h2>
+        <p class="card__hint">Due entries are created the next time you sign in.</p>
+      </div>
+      <a class="btn" href="{{ url_for('recurring.create') }}">Add recurring expense</a>
+    </div>
+    {% if rules %}
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">What</th>
+              <th scope="col">Category</th>
+              <th scope="col">How often</th>
+              <th scope="col">Next due</th>
+              <th scope="col" class="num">Amount</th>
+              <th scope="col">Status</th>
+              <th scope="col"><span class="visually-hidden">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for rule in rules %}
+              <tr>
+                <th scope="row" class="wrap">{{ rule.title }}</th>
+                <td>
+                  <span class="badge" style="background: {{ rule.category.colour }}1a; color: {{ rule.category.colour }};">
+                    {{ rule.category.icon }} {{ rule.category.name }}
+                  </span>
+                </td>
+                <td>{{ rule.frequency_label }}</td>
+                <td>{{ rule.next_due_on|short_date }}</td>
+                <td class="num">{{ rule.amount|money }}</td>
+                <td>
+                  {% if rule.is_active %}
+                    <span class="badge badge--ok">Active</span>
+                  {% else %}
+                    <span class="badge">Paused</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="btn-row">
+                    <a class="btn btn--ghost btn--sm"
+                       href="{{ url_for('recurring.edit', rule_id=rule.id) }}">Edit</a>
+                    <form method="post" class="inline-form"
+                          action="{{ url_for('recurring.toggle', rule_id=rule.id) }}">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn--ghost btn--sm">
+                        {{ "Pause" if rule.is_active else "Resume" }}
+                      </button>
+                    </form>
+                    <form method="post" class="inline-form"
+                          action="{{ url_for('recurring.delete', rule_id=rule.id) }}"
+                          data-confirm="Remove the recurring rule &quot;{{ rule.title }}&quot;? Past entries are kept.">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn--danger btn--sm">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty">
+        <div class="empty__icon" aria-hidden="true">↻</div>
+        <p class="empty__title">No recurring expenses yet</p>
+        <p>Add your rent or a subscription and it will be entered for you each period.</p>
+        <div class="btn-row" style="justify-content: center; margin-top: 16px;">
+          <a class="btn" href="{{ url_for('recurring.create') }}">Add your first rule</a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

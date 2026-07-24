@@ -28,6 +28,7 @@ def create_app():
     from app.features.categories import categories_bp
     from app.features.budgets import budgets_bp
     from app.features.goals import goals_bp
+    from app.features.recurring import recurring_bp
 
     app.register_blueprint(core_bp)
     app.register_blueprint(auth_bp)
@@ -35,6 +36,7 @@ def create_app():
     app.register_blueprint(categories_bp)
     app.register_blueprint(budgets_bp)
     app.register_blueprint(goals_bp)
+    app.register_blueprint(recurring_bp)
 
     register_commands(app)
 

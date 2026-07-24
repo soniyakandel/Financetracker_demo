@@ -1,0 +1,28 @@
+{% extends "layouts/app.html" %}
+{% from "partials/_forms.html" import field, select_field %}
+{% set editing = rule is not none %}
+{% block title %}{{ "Edit" if editing else "New" }} recurring expense - Finance Tracker{% endblock %}
+{% block page_title %}{{ "Edit recurring expense" if editing else "New recurring expense" }}{% endblock %}
+{% block page_subtitle %}
+  <p class="topbar__sub">Rent, subscriptions and bills are created for you when they fall due.</p>
+{% endblock %}
+{% block content %}
+  <div class="card" style="max-width: 620px;">
+    <form method="post" class="form" novalidate>
+      {{ form.hidden_tag() }}
+      {{ field(form.title, autofocus=true, hint="For example: Room rent, Netflix, Internet bill") }}
+      <div class="form-row">
+        {{ field(form.amount) }}
+        {{ select_field(form.frequency) }}
+      </div>
+      <div class="form-row">
+        {{ select_field(form.category_id) }}
+        {{ field(form.start_on, hint="Entries are created from this date onwards.") }}
+      </div>
+      <div class="btn-row">
+        {{ form.submit(class="btn") }}
+        <a class="btn btn--ghost" href="{{ url_for('recurring.index') }}">Cancel</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}
