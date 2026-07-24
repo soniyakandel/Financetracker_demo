@@ -1,8 +1,9 @@
 from datetime import datetime
 
 from flask import Flask, render_template, request, redirect, url_for, session
-from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
+
+from models import db, Expense, User
 
 CATEGORIES = ["Food", "Transport", "Shopping", "Bills", "Other"]
 
@@ -10,23 +11,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret123"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///site.db"
 
-db = SQLAlchemy(app)
-
-
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80))
-    email = db.Column(db.String(120), unique=True)
-    password = db.Column(db.String(255))
-
-
-class Expense(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100))
-    amount = db.Column(db.Float)
-    date = db.Column(db.Date)
-    category = db.Column(db.String(50))
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+db.init_app(app)
 
 
 @app.route("/")
