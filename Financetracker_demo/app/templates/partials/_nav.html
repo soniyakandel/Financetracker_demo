@@ -2,6 +2,7 @@
   <a href="{{ url_for('core.landing') }}"><strong>Finance Tracker</strong></a>
   <a href="{{ url_for('expenses.index') }}">Transactions</a>
   <a href="{{ url_for('categories.index') }}">Categories</a>
+  <a href="{{ url_for('budgets.index') }}">Budgets</a>
   <span>{{ current_user.name }}</span>
   <form method="post" action="{{ url_for('auth.logout') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

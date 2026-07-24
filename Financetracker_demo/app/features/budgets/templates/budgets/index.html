@@ -1,0 +1,78 @@
+{% extends "layouts/app.html" %}
+{% block title %}Budgets - Finance Tracker{% endblock %}
+{% block page_title %}Budgets{% endblock %}
+{% block page_subtitle %}
+  <p class="topbar__sub">{{ month_key|month_name }} - {{ total_spent|money }} of {{ total_limit|money }} used</p>
+{% endblock %}
+{% block content %}
+  <div class="card">
+    <div class="card__head">
+      <form method="get" class="field" style="min-width: 200px;">
+        <label class="field__label" for="month">Showing</label>
+        <select class="select" id="month" name="month" data-auto-submit>
+          {% for key, label in months %}
+            <option value="{{ key }}" {% if key == month_key %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <noscript><button type="submit" class="btn btn--sm" style="margin-top:8px;">Show</button></noscript>
+      </form>
+      <a class="btn" href="{{ url_for('budgets.create', month=month_key) }}">Set a budget</a>
+    </div>
+    {% if budgets %}
+      <div class="stack">
+        {% for budget in budgets %}
+          <div>
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:6px;">
+              <span class="badge" style="background: {{ budget.category.colour }}1a; color: {{ budget.category.colour }};">
+                {{ budget.category.icon }} {{ budget.category.name }}
+              </span>
+              {% if budget.status == 'over' %}
+                <span class="badge badge--over">Over budget</span>
+              {% elif budget.status == 'warning' %}
+                <span class="badge badge--warning">Nearly there</span>
+              {% else %}
+                <span class="badge badge--ok">On track</span>
+              {% endif %}
+              <span style="margin-left:auto; font-family: var(--font-num); font-size: 14px;">
+                {{ budget.spent|money }} / {{ budget.amount_limit|money }}
+              </span>
+              <div class="btn-row">
+                <a class="btn btn--ghost btn--sm" href="{{ url_for('budgets.edit', budget_id=budget.id) }}">Edit</a>
+                <form method="post" class="inline-form"
+                      action="{{ url_for('budgets.delete', budget_id=budget.id) }}"
+                      data-confirm="Remove the budget for {{ budget.category.name }}?">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn--danger btn--sm">Delete</button>
+                </form>
+              </div>
+            </div>
+            <div class="progress">
+              <div class="progress__bar progress__bar--{{ budget.status }}"
+                   style="width: {{ [budget.percent_used, 100]|min }}%"
+                   role="progressbar" aria-valuenow="{{ budget.percent_used }}"
+                   aria-valuemin="0" aria-valuemax="100"
+                   aria-label="{{ budget.category.name }} budget used"></div>
+            </div>
+            <p class="card__hint" style="margin-top:4px;">
+              {{ budget.percent_used }}% used -
+              {% if budget.remaining >= 0 %}
+                {{ budget.remaining|money }} left
+              {% else %}
+                {{ (0 - budget.remaining)|money }} over
+              {% endif %}
+            </p>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty">
+        <div class="empty__icon" aria-hidden="true">◑</div>
+        <p class="empty__title">No budgets for {{ month_key|month_name }}</p>
+        <p>Give a category a monthly limit and track how much of it you have used.</p>
+        <div class="btn-row" style="justify-content:center; margin-top:16px;">
+          <a class="btn" href="{{ url_for('budgets.create', month=month_key) }}">Set your first budget</a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "layouts/app.html" %}
+{% from "partials/_forms.html" import field, select_field %}
+{% set editing = budget is not none %}
+{% block title %}{{ "Edit" if editing else "New" }} budget - Finance Tracker{% endblock %}
+{% block page_title %}{{ "Edit budget" if editing else "Set a budget" }}{% endblock %}
+{% block page_subtitle %}
+  <p class="topbar__sub">A limit for one category, for one month.</p>
+{% endblock %}
+{% block content %}
+  <div class="card" style="max-width: 560px;">
+    <form method="post" class="form" novalidate>
+      {{ form.hidden_tag() }}
+      {{ select_field(form.category_id) }}
+      {{ select_field(form.month) }}
+      {{ field(form.amount_limit, hint="You will be warned once you pass 80% of this.") }}
+      <div class="btn-row">
+        {{ form.submit(class="btn") }}
+        <a class="btn btn--ghost" href="{{ url_for('budgets.index') }}">Cancel</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}
