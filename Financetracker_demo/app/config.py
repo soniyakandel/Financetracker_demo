@@ -38,6 +38,10 @@ class BaseConfig:
     ITEMS_PER_PAGE = 10
     CURRENCY_SYMBOL = "Rs."
 
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "")
+    JWT_ALGORITHM = "HS256"
+    JWT_ACCESS_MINUTES = _int_env("JWT_ACCESS_MINUTES", 15)
+
 
 class DevelopmentConfig(BaseConfig):
     DEBUG = True
