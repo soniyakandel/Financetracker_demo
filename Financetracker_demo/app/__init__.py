@@ -46,6 +46,7 @@ def _init_extensions(app):
 
 
 def _register_blueprints(app):
+    from app.features.api import api_bp
     from app.features.auth import auth_bp
     from app.features.budgets import budgets_bp
     from app.features.categories import categories_bp
@@ -65,3 +66,6 @@ def _register_blueprints(app):
     app.register_blueprint(budgets_bp)
     app.register_blueprint(goals_bp)
     app.register_blueprint(profile_bp)
+
+    app.register_blueprint(api_bp)
+    csrf.exempt(api_bp)
