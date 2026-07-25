@@ -1,0 +1,8 @@
+<nav class="auth-tabs" aria-label="Sign in or create an account">
+  <a class="auth-tabs__tab{{ ' is-active' if active == 'login' }}"
+     href="{{ url_for('auth.login') }}"
+     {% if active == 'login' %}aria-current="page"{% endif %}>Sign in</a>
+  <a class="auth-tabs__tab{{ ' is-active' if active == 'register' }}"
+     href="{{ url_for('auth.register') }}"
+     {% if active == 'register' %}aria-current="page"{% endif %}>Create account</a>
+</nav>

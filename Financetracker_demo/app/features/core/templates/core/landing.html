@@ -1,8 +1,11 @@
 {% extends "base.html" %}
+
 {% block title %}Finance Tracker - track every rupee{% endblock %}
 {% block body_class %}landing{% endblock %}
+
 {% block layout %}
 <a class="skip-link" href="#main">Skip to content</a>
+
 <header class="landing__nav">
   <a class="landing__brand" href="{{ url_for('core.landing') }}">
     <span class="landing__logo" aria-hidden="true">₣</span>
@@ -13,55 +16,19 @@
     <a class="btn" href="{{ url_for('auth.register') }}">Create account</a>
   </div>
 </header>
+
 <main id="main">
   <section class="landing__hero">
     <div>
-      <h1 class="landing__title">Know where <em>every rupee</em> goes.</h1>
+      <h1 class="landing__title">Welcome to Finance Tracker</h1>
       <p class="landing__lead">
-        A simple personal finance tracker: record your expenses, group them into
-        ten familiar categories, set a monthly budget and watch your savings
-        goals fill up. Your account is protected by a password policy and a
-        two-step verification code every time you sign in.
+        Record your expenses, set a monthly budget and keep an eye on your
+        savings.
       </p>
-      <div class="btn-row">
-        <a class="btn" href="{{ url_for('auth.register') }}">Start tracking</a>
-        <a class="btn btn--ghost" href="{{ url_for('auth.login') }}">I already have an account</a>
-      </div>
+      
     </div>
-    <div class="preview" aria-hidden="true">
-      <div class="preview__row">
-        <span>This month's spending</span>
-        <span class="preview__amount">Rs. 24,850</span>
-      </div>
-      <div class="preview__row"><span>🍔 Food</span><span class="preview__amount">Rs. 6,200</span></div>
-      <div class="preview__row"><span>🏠 Rent</span><span class="preview__amount">Rs. 12,000</span></div>
-      <div class="preview__row"><span>🚌 Transport</span><span class="preview__amount">Rs. 2,150</span></div>
-      <div class="preview__row"><span>💡 Bills &amp; Utilities</span><span class="preview__amount">Rs. 4,500</span></div>
-    </div>
-  </section>
-  <section class="landing__features" aria-label="Features">
-    {% set features = [
-      ('≡', 'Expenses, properly organised',
-       'Add, edit and delete expenses, browse the full history and filter it by date, category or keyword.'),
-      ('↻', 'Recurring bills on autopilot',
-       'Rent, subscriptions and monthly bills are created for you when they fall due, so nothing is forgotten.'),
-      ('◑', 'Budgets and savings goals',
-       'Give each category a monthly limit and get a clear warning before you go over it.'),
-      ('◧', 'A dashboard that makes sense',
-       'Income, expense and balance at a glance, with a category breakdown and a six-month trend.'),
-      ('⚿', 'Security built in',
-       'Hashed passwords, CSRF-protected forms, rate limiting and a two-step code at every sign-in.'),
-      ('◎', 'You control your sessions',
-       'See every device signed in to your account and cut any of them off with one click.')
-    ] %}
-    {% for icon, title, text in features %}
-      <article class="feature">
-        <div class="feature__icon" aria-hidden="true">{{ icon }}</div>
-        <h2 class="feature__title">{{ title }}</h2>
-        <p class="feature__text">{{ text }}</p>
-      </article>
-    {% endfor %}
   </section>
 </main>
+
 
 {% endblock %}

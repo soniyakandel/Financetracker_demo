@@ -37,8 +37,8 @@ class RegisterForm(FlaskForm):
         ],
     )
     accept_terms = BooleanField(
-        "I understand this is a student project and will not store real bank details.",
-        validators=[DataRequired(message="Please tick the box to continue.")],
+        "I agree to the Terms of Service and Privacy Policy.",
+        validators=[DataRequired(message="Please accept the terms to continue.")],
     )
     submit = SubmitField("Create account")
 
