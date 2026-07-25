@@ -1,10 +1,27 @@
 {% extends "base.html" %}
+{% block body_class %}auth-shell{% endblock %}
 {% block layout %}
-  <main class="content" id="main">
-    <h1>{% block auth_title %}{% endblock %}</h1>
-    <p>{% block auth_subtitle %}{% endblock %}</p>
-    {% include "partials/_flash.html" %}
-    {% block auth_body %}{% endblock %}
-    <p>{% block auth_foot %}{% endblock %}</p>
-  </main>
+  <div class="auth-grid">
+    <section class="auth-aside" aria-hidden="true">
+      <a class="auth-aside__brand" href="{{ url_for('core.landing') }}">
+        <span class="auth-aside__logo">₣</span> Finance<strong>Tracker</strong>
+      </a>
+      <p class="auth-aside__tagline">Know where every rupee goes.</p>
+      <ul class="auth-aside__points">
+        <li>Track expenses across ten categories</li>
+        <li>Set monthly budgets and savings goals</li>
+        <li>Protected by two-step verification</li>
+      </ul>
+      <p class="auth-aside__note">Your data stays on your own account.</p>
+    </section>
+    <main class="auth-panel" id="main">
+      <div class="auth-card">
+        <h1 class="auth-card__title">{% block auth_title %}{% endblock %}</h1>
+        <p class="auth-card__subtitle">{% block auth_subtitle %}{% endblock %}</p>
+        {% include "partials/_flash.html" %}
+        {% block auth_body %}{% endblock %}
+      </div>
+      <p class="auth-panel__foot">{% block auth_foot %}{% endblock %}</p>
+    </main>
+  </div>
 {% endblock %}

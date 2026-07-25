@@ -1,10 +1,24 @@
 {% extends "base.html" %}
+{% block body_class %}app-shell{% endblock %}
 {% block layout %}
+  <a class="skip-link" href="#main">Skip to content</a>
   {% include "partials/_nav.html" %}
-  <main class="content" id="main">
-    <h1>{% block page_title %}{% endblock %}</h1>
-    {% block page_subtitle %}{% endblock %}
-    {% include "partials/_flash.html" %}
-    {% block content %}{% endblock %}
-  </main>
+  <div class="app-main">
+    <header class="topbar">
+      <button type="button" class="topbar__menu" data-sidebar-toggle aria-label="Toggle navigation">☰</button>
+      <div class="topbar__titles">
+        <h1 class="topbar__title">{% block page_title %}{% endblock %}</h1>
+        {% block page_subtitle %}{% endblock %}
+      </div>
+      <div class="topbar__user">
+        <span class="topbar__avatar" aria-hidden="true">{{ current_user.name[0]|upper }}</span>
+        <span class="topbar__name">{{ current_user.name }}</span>
+      </div>
+    </header>
+    <main class="content" id="main">
+      {% include "partials/_flash.html" %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  <div class="sidebar-backdrop" data-sidebar-toggle hidden></div>
 {% endblock %}
