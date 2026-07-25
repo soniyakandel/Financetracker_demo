@@ -9,3 +9,8 @@ def landing():
     if current_user.is_authenticated:
         return redirect(url_for("dashboard.index"))
     return render_template("core/landing.html")
+
+
+@core_bp.route("/healthz")
+def healthz():
+    return {"status": "ok"}

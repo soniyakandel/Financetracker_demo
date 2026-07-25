@@ -3,11 +3,12 @@ from datetime import date
 from flask import flash, redirect, render_template, url_for
 from flask_login import current_user, login_required
 
-from app.extensions import db
+from app.extensions import db, limiter
 from app.features.goals import goals_bp
 from app.features.goals.forms import ContributionForm, GoalForm
 from app.models.goal import GoalContribution, SavingsGoal
 from app.security.decorators import get_owned_or_404
+from app.security.ratelimit import WRITE_LIMIT
 
 
 @goals_bp.route("/")
@@ -28,6 +29,7 @@ def index():
 
 @goals_bp.route("/new", methods=["GET", "POST"])
 @login_required
+@limiter.limit(WRITE_LIMIT, methods=["POST"])
 def create():
     form = GoalForm()
 
@@ -50,6 +52,7 @@ def create():
 
 @goals_bp.route("/<int:goal_id>/edit", methods=["GET", "POST"])
 @login_required
+@limiter.limit(WRITE_LIMIT, methods=["POST"])
 def edit(goal_id):
     goal = get_owned_or_404(SavingsGoal, goal_id)
     form = GoalForm(obj=goal)
@@ -70,6 +73,7 @@ def edit(goal_id):
 
 @goals_bp.route("/<int:goal_id>/contribute", methods=["POST"])
 @login_required
+@limiter.limit(WRITE_LIMIT)
 def contribute(goal_id):
     goal = get_owned_or_404(SavingsGoal, goal_id)
     form = ContributionForm()
@@ -102,6 +106,7 @@ def contribute(goal_id):
 
 @goals_bp.route("/<int:goal_id>/delete", methods=["POST"])
 @login_required
+@limiter.limit(WRITE_LIMIT)
 def delete(goal_id):
     goal = get_owned_or_404(SavingsGoal, goal_id)
 

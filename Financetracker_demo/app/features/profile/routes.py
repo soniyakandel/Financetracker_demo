@@ -9,7 +9,7 @@ from flask import (
 )
 from flask_login import current_user, login_required
 
-from app.extensions import db
+from app.extensions import db, limiter
 from app.features.auth.routes import SESSION_TOKEN_KEY
 from app.features.profile import profile_bp
 from app.features.profile.forms import ChangePasswordForm, ProfileForm
@@ -26,6 +26,7 @@ from app.models.user import User
 from app.security.audit import log_event
 from app.security.decorators import get_owned_or_404
 from app.security.policy import RULES
+from app.security.ratelimit import PASSWORD_CHANGE_LIMIT, WRITE_LIMIT
 
 
 @profile_bp.route("/")
@@ -36,6 +37,7 @@ def index():
 
 @profile_bp.route("/edit", methods=["GET", "POST"])
 @login_required
+@limiter.limit(WRITE_LIMIT, methods=["POST"])
 def edit():
     form = ProfileForm(obj=current_user)
 
@@ -68,6 +70,7 @@ def edit():
 
 @profile_bp.route("/password", methods=["GET", "POST"])
 @login_required
+@limiter.limit(PASSWORD_CHANGE_LIMIT, methods=["POST"])
 def change_password():
     form = ChangePasswordForm()
 
@@ -136,6 +139,7 @@ def sessions():
 
 @profile_bp.route("/sessions/<int:session_id>/revoke", methods=["POST"])
 @login_required
+@limiter.limit(WRITE_LIMIT)
 def revoke_session(session_id):
     record = get_owned_or_404(UserSession, session_id)
 
@@ -153,6 +157,7 @@ def revoke_session(session_id):
 
 @profile_bp.route("/sessions/revoke-others", methods=["POST"])
 @login_required
+@limiter.limit(WRITE_LIMIT)
 def revoke_other_sessions():
     keep = session.get(SESSION_TOKEN_KEY)
 

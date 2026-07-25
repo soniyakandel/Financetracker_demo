@@ -1,12 +1,13 @@
 from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
-from app.extensions import db
+from app.extensions import db, limiter
 from app.features.recurring import recurring_bp
 from app.features.recurring.forms import RecurringForm
 from app.models.category import Category
 from app.models.recurring import RecurringExpense
 from app.security.decorators import get_owned_or_404
+from app.security.ratelimit import WRITE_LIMIT
 
 
 def _user_categories():
@@ -30,6 +31,7 @@ def index():
 
 @recurring_bp.route("/new", methods=["GET", "POST"])
 @login_required
+@limiter.limit(WRITE_LIMIT, methods=["POST"])
 def create():
     form = RecurringForm()
     form.set_category_choices(_user_categories())
@@ -55,6 +57,7 @@ def create():
 
 @recurring_bp.route("/<int:rule_id>/edit", methods=["GET", "POST"])
 @login_required
+@limiter.limit(WRITE_LIMIT, methods=["POST"])
 def edit(rule_id):
     rule = get_owned_or_404(RecurringExpense, rule_id)
 
@@ -80,6 +83,7 @@ def edit(rule_id):
 
 @recurring_bp.route("/<int:rule_id>/toggle", methods=["POST"])
 @login_required
+@limiter.limit(WRITE_LIMIT)
 def toggle(rule_id):
     rule = get_owned_or_404(RecurringExpense, rule_id)
     rule.is_active = not rule.is_active
@@ -94,6 +98,7 @@ def toggle(rule_id):
 
 @recurring_bp.route("/<int:rule_id>/delete", methods=["POST"])
 @login_required
+@limiter.limit(WRITE_LIMIT)
 def delete(rule_id):
     rule = get_owned_or_404(RecurringExpense, rule_id)
 

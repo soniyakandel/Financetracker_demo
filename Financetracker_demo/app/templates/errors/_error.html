@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}{{ code }} - {{ heading }}{% endblock %}
+{% block layout %}
+<main class="error-page" id="main">
+  <div>
+    <p class="error-page__code">{{ code }}</p>
+    <h1 class="error-page__title">{{ heading }}</h1>
+    <p class="error-page__text">{{ message }}</p>
+    <a class="btn" href="{{ url_for('core.landing') }}">Back to safety</a>
+  </div>
+</main>
+{% endblock %}

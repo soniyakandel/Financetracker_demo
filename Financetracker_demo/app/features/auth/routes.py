@@ -1,10 +1,11 @@
 from flask import current_app, flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
-from app.extensions import db
+from app.extensions import db, limiter
 from app.features.auth import auth_bp
 from app.features.auth.forms import LoginForm, OtpForm, RegisterForm
 from app.features.auth.otp import send_login_code
+from app.features.recurring.generator import generate_due_for
 from app.models.audit import (
     EVENT_LOGIN_FAILED,
     EVENT_LOGIN_LOCKED,
@@ -21,6 +22,13 @@ from app.models.session import UserSession
 from app.models.user import User
 from app.security.audit import client_agent, client_ip, log_event
 from app.security.policy import RULES
+from app.security.ratelimit import (
+    LOGIN_LIMIT,
+    OTP_RESEND_LIMIT,
+    OTP_VERIFY_LIMIT,
+    REGISTER_LIMIT,
+)
+from app.security.urls import safe_redirect_target
 
 PENDING_USER_KEY = "pending_user_id"
 PENDING_REMEMBER_KEY = "pending_remember"
@@ -70,9 +78,10 @@ def _handle_failed_password(user, email):
 
 
 @auth_bp.route("/register", methods=["GET", "POST"])
+@limiter.limit(REGISTER_LIMIT, methods=["POST"])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for("core.landing"))
+        return redirect(url_for("dashboard.index"))
 
     form = RegisterForm()
 
@@ -105,9 +114,10 @@ def register():
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
+@limiter.limit(LOGIN_LIMIT, methods=["POST"])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("core.landing"))
+        return redirect(url_for("dashboard.index"))
 
     form = LoginForm()
 
@@ -167,8 +177,15 @@ def _complete_login(user):
     log_event(EVENT_LOGIN_SUCCESS, detail=record.device_label, user=user)
     db.session.commit()
 
+    created = generate_due_for(user)
+    if created:
+        flash(
+            f"{created} recurring expense(s) were added to your history.",
+            "info",
+        )
+
     flash(f"Welcome back, {user.name}.", "success")
-    target = url_for("core.landing")
+    target = safe_redirect_target(next_page, url_for("dashboard.index"))
     return redirect(target)
 
 
@@ -180,9 +197,10 @@ def _pending_user():
 
 
 @auth_bp.route("/verify", methods=["GET", "POST"])
+@limiter.limit(OTP_VERIFY_LIMIT, methods=["POST"])
 def verify_otp():
     if current_user.is_authenticated:
-        return redirect(url_for("core.landing"))
+        return redirect(url_for("dashboard.index"))
 
     user = _pending_user()
     if user is None:
@@ -212,6 +230,7 @@ def verify_otp():
 
 
 @auth_bp.route("/verify/resend", methods=["POST"])
+@limiter.limit(OTP_RESEND_LIMIT)
 def resend_otp():
     user = _pending_user()
     if user is None:

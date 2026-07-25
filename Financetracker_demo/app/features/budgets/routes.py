@@ -5,13 +5,14 @@ from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import func
 
-from app.extensions import db
+from app.extensions import db, limiter
 from app.features.budgets import budgets_bp
 from app.features.budgets.forms import BudgetForm, month_choices
 from app.models.budget import Budget
 from app.models.category import Category
 from app.models.transaction import EXPENSE, Transaction
 from app.security.decorators import get_owned_or_404
+from app.security.ratelimit import WRITE_LIMIT
 
 
 def _user_categories():
@@ -71,6 +72,7 @@ def index():
 
 @budgets_bp.route("/new", methods=["GET", "POST"])
 @login_required
+@limiter.limit(WRITE_LIMIT, methods=["POST"])
 def create():
     form = BudgetForm()
     form.set_choices(_user_categories())
@@ -110,6 +112,7 @@ def create():
 
 @budgets_bp.route("/<int:budget_id>/edit", methods=["GET", "POST"])
 @login_required
+@limiter.limit(WRITE_LIMIT, methods=["POST"])
 def edit(budget_id):
     budget = get_owned_or_404(Budget, budget_id)
 
@@ -140,6 +143,7 @@ def edit(budget_id):
 
 @budgets_bp.route("/<int:budget_id>/delete", methods=["POST"])
 @login_required
+@limiter.limit(WRITE_LIMIT)
 def delete(budget_id):
     budget = get_owned_or_404(Budget, budget_id)
 

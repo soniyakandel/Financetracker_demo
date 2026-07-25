@@ -1,13 +1,15 @@
 from flask import current_app, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
-from app.extensions import db
+from app.extensions import db, limiter
 from app.features.expenses import expenses_bp
 from app.features.expenses.filters import build_query, read_filters, summarise
 from app.features.expenses.forms import TransactionForm
 from app.models.category import Category
 from app.models.transaction import EXPENSE, INCOME, Transaction
 from app.security.decorators import get_owned_or_404
+from app.security.ratelimit import WRITE_LIMIT
+from app.security.urls import safe_redirect_target
 
 
 def _user_categories():
@@ -40,6 +42,7 @@ def index():
 
 @expenses_bp.route("/new", methods=["GET", "POST"])
 @login_required
+@limiter.limit(WRITE_LIMIT, methods=["POST"])
 def create():
     form = TransactionForm()
     form.set_category_choices(_user_categories())
@@ -68,6 +71,7 @@ def create():
 
 @expenses_bp.route("/<int:transaction_id>/edit", methods=["GET", "POST"])
 @login_required
+@limiter.limit(WRITE_LIMIT, methods=["POST"])
 def edit(transaction_id):
     transaction = get_owned_or_404(Transaction, transaction_id)
 
@@ -93,6 +97,7 @@ def edit(transaction_id):
 
 @expenses_bp.route("/<int:transaction_id>/delete", methods=["POST"])
 @login_required
+@limiter.limit(WRITE_LIMIT)
 def delete(transaction_id):
     transaction = get_owned_or_404(Transaction, transaction_id)
 
@@ -100,4 +105,4 @@ def delete(transaction_id):
     db.session.commit()
 
     flash("Transaction deleted.", "success")
-    return redirect(url_for("expenses.index"))
+    return redirect(safe_redirect_target(request.referrer, url_for("expenses.index")))

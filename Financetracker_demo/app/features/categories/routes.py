@@ -4,12 +4,13 @@ from flask import flash, redirect, render_template, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import func
 
-from app.extensions import db
+from app.extensions import db, limiter
 from app.features.categories import categories_bp
 from app.features.categories.forms import CategoryForm
 from app.models.category import Category
 from app.models.transaction import EXPENSE, Transaction
 from app.security.decorators import get_owned_or_404
+from app.security.ratelimit import WRITE_LIMIT
 
 
 def _spend_by_category():
@@ -45,6 +46,7 @@ def index():
 
 @categories_bp.route("/new", methods=["GET", "POST"])
 @login_required
+@limiter.limit(WRITE_LIMIT, methods=["POST"])
 def create():
     form = CategoryForm()
 
@@ -77,6 +79,7 @@ def create():
 
 @categories_bp.route("/<int:category_id>/edit", methods=["GET", "POST"])
 @login_required
+@limiter.limit(WRITE_LIMIT, methods=["POST"])
 def edit(category_id):
     category = get_owned_or_404(Category, category_id)
     form = CategoryForm(obj=category)
@@ -108,6 +111,7 @@ def edit(category_id):
 
 @categories_bp.route("/<int:category_id>/delete", methods=["POST"])
 @login_required
+@limiter.limit(WRITE_LIMIT)
 def delete(category_id):
     category = get_owned_or_404(Category, category_id)
 
