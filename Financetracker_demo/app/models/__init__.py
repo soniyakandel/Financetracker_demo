@@ -8,6 +8,7 @@ from app.models.recurring import (
     WEEKLY,
     RecurringExpense,
 )
+from app.models.revoked_token import RevokedToken
 from app.models.security import LoginAttempt, OtpCode
 from app.models.session import UserSession
 from app.models.transaction import (

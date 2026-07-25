@@ -41,6 +41,7 @@ class BaseConfig:
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "")
     JWT_ALGORITHM = "HS256"
     JWT_ACCESS_MINUTES = _int_env("JWT_ACCESS_MINUTES", 15)
+    JWT_REFRESH_DAYS = _int_env("JWT_REFRESH_DAYS", 7)
 
 
 class DevelopmentConfig(BaseConfig):

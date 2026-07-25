@@ -1,13 +1,28 @@
+import jwt
 from flask import current_app, jsonify, request
 
 from app.extensions import db, limiter
 from app.features.api import api_bp
-from app.models.audit import EVENT_LOGIN_FAILED, EVENT_LOGIN_LOCKED, EVENT_LOGIN_SUCCESS
+from app.models.audit import (
+    EVENT_LOGIN_FAILED,
+    EVENT_LOGIN_LOCKED,
+    EVENT_LOGIN_SUCCESS,
+    EVENT_LOGOUT,
+)
+from app.models.revoked_token import RevokedToken
 from app.models.security import LoginAttempt
 from app.models.transaction import EXPENSE, INCOME, Transaction
 from app.models.user import User
 from app.security.audit import client_ip, log_event
-from app.security.jwt_tokens import create_access_token, current_api_user, token_required
+from app.security.jwt_tokens import (
+    ACCESS,
+    REFRESH,
+    create_access_token,
+    create_refresh_token,
+    current_api_user,
+    decode_token,
+    token_required,
+)
 from app.security.ratelimit import LOGIN_LIMIT
 
 
@@ -42,6 +57,7 @@ def login():
 
     return jsonify(
         access_token=create_access_token(user),
+        refresh_token=create_refresh_token(user),
         token_type="Bearer",
         expires_in=current_app.config["JWT_ACCESS_MINUTES"] * 60,
     )
@@ -102,3 +118,55 @@ def summary():
     return jsonify(
         income=str(income), expense=str(expense), balance=str(income - expense)
     )
+
+
+def _read_token(field):
+    data = request.get_json(silent=True) or {}
+    return (data.get(field) or "").strip()
+
+
+@api_bp.route("/refresh", methods=["POST"])
+@limiter.limit(LOGIN_LIMIT)
+def refresh():
+    token = _read_token("refresh_token")
+    if not token:
+        return jsonify(error="missing_token"), 401
+
+    try:
+        payload = decode_token(token, REFRESH)
+    except jwt.ExpiredSignatureError:
+        return jsonify(error="token_expired"), 401
+    except jwt.InvalidTokenError:
+        return jsonify(error="invalid_token"), 401
+
+    user = db.session.get(User, int(payload["sub"]))
+    if user is None or not user.is_active:
+        return jsonify(error="invalid_token"), 401
+
+    RevokedToken.revoke(payload)
+    db.session.commit()
+
+    return jsonify(
+        access_token=create_access_token(user),
+        refresh_token=create_refresh_token(user),
+        token_type="Bearer",
+        expires_in=current_app.config["JWT_ACCESS_MINUTES"] * 60,
+    )
+
+
+@api_bp.route("/logout", methods=["POST"])
+@token_required
+def logout():
+    header = request.headers.get("Authorization", "")
+    RevokedToken.revoke(decode_token(header[7:].strip(), ACCESS))
+
+    refresh_token = _read_token("refresh_token")
+    if refresh_token:
+        try:
+            RevokedToken.revoke(decode_token(refresh_token, REFRESH))
+        except jwt.InvalidTokenError:
+            pass
+
+    log_event(EVENT_LOGOUT, user=current_api_user())
+    db.session.commit()
+    return jsonify(status="signed_out")

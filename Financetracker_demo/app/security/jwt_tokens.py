@@ -7,9 +7,11 @@ from flask import current_app, g, jsonify, request
 
 from app.extensions import db
 from app.models.base import utcnow
+from app.models.revoked_token import RevokedToken
 from app.models.user import User
 
 ACCESS = "access"
+REFRESH = "refresh"
 
 
 def _secret():
@@ -20,22 +22,34 @@ def _algorithm():
     return current_app.config["JWT_ALGORITHM"]
 
 
-def create_access_token(user):
+def _create(user, token_type, lifetime):
     now = utcnow()
     payload = {
         "sub": str(user.id),
-        "type": ACCESS,
+        "type": token_type,
         "jti": uuid.uuid4().hex,
         "iat": now,
-        "exp": now + timedelta(minutes=current_app.config["JWT_ACCESS_MINUTES"]),
+        "exp": now + lifetime,
     }
     return jwt.encode(payload, _secret(), algorithm=_algorithm())
+
+
+def create_access_token(user):
+    minutes = current_app.config["JWT_ACCESS_MINUTES"]
+    return _create(user, ACCESS, timedelta(minutes=minutes))
+
+
+def create_refresh_token(user):
+    days = current_app.config["JWT_REFRESH_DAYS"]
+    return _create(user, REFRESH, timedelta(days=days))
 
 
 def decode_token(token, expected_type=ACCESS):
     payload = jwt.decode(token, _secret(), algorithms=[_algorithm()])
     if payload.get("type") != expected_type:
         raise jwt.InvalidTokenError("wrong token type")
+    if RevokedToken.is_revoked(payload["jti"]):
+        raise jwt.InvalidTokenError("token revoked")
     return payload
 
 
