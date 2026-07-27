@@ -1,12 +1,62 @@
+{% macro required_marker(f) %}
+  {%- if f.flags.required -%}
+    &nbsp;<span class="field__required" aria-hidden="true">*</span
+      ><span class="visually-hidden">required</span>
+  {%- else -%}
+    &nbsp;<span class="field__optional">(optional)</span>
+  {%- endif -%}
+{% endmacro %}
+
+{% macro field_label(f) %}
+  <label class="field__label" for="{{ f.id }}">
+    {{- f.label.text }}{{ required_marker(f) -}}
+  </label>
+{% endmacro %}
+
+{% macro password_control(f, hint=None, autofocus=False, autocomplete=None, extra_class="", strength=False) %}
+  {% set flags = {"data-strength-input": "true"} if strength else {} %}
+  <div class="input-group">
+    {{ f(
+        class="input input--with-affix " ~ extra_class ~ (" input--error" if f.errors else ""),
+        autofocus=autofocus,
+        autocomplete=autocomplete,
+        **dict(flags, **{"aria-describedby": f.id ~ "-help" if hint else ""})
+      ) }}
+    <button type="button" class="input-affix" data-password-toggle
+            aria-controls="{{ f.id }}" aria-pressed="false"
+            aria-label="Show password" title="Show password" hidden>
+      <svg class="icon icon--eye" viewBox="0 0 24 24" width="18" height="18" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round"
+           stroke-linejoin="round" aria-hidden="true">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+      </svg>
+      <svg class="icon icon--eye-off" viewBox="0 0 24 24" width="18" height="18" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round"
+           stroke-linejoin="round" aria-hidden="true">
+        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"></path>
+        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"></path>
+        <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"></path>
+        <line x1="1" y1="1" x2="23" y2="23"></line>
+      </svg>
+    </button>
+  </div>
+{% endmacro %}
+
 {% macro field(f, hint=None, autofocus=False, autocomplete=None, extra_class="") %}
   <div class="field">
-    {{ f.label(class="field__label") }}
+    {{ field_label(f) }}
+    {% if f.type == "PasswordField" %}
+      {{ password_control(f, hint=hint, autofocus=autofocus,
+                          autocomplete=autocomplete, extra_class=extra_class) }}
+    {% else %}
     {{ f(
         class="input " ~ extra_class ~ (" input--error" if f.errors else ""),
         autofocus=autofocus,
         autocomplete=autocomplete,
         **{"aria-describedby": f.id ~ "-help" if hint else ""}
       ) }}
+    {% endif %}
     {% if hint %}<p class="field__hint" id="{{ f.id }}-help">{{ hint }}</p>{% endif %}
     {% if f.errors %}
       <ul class="field__errors">
@@ -15,9 +65,10 @@
     {% endif %}
   </div>
 {% endmacro %}
+
 {% macro select_field(f, hint=None) %}
   <div class="field">
-    {{ f.label(class="field__label") }}
+    {{ field_label(f) }}
     {{ f(class="select" ~ (" select--error" if f.errors else "")) }}
     {% if hint %}<p class="field__hint">{{ hint }}</p>{% endif %}
     {% if f.errors %}
@@ -27,9 +78,13 @@
     {% endif %}
   </div>
 {% endmacro %}
+
 {% macro checkbox_field(f) %}
   <div class="field">
-    <label class="checkbox">{{ f() }} <span>{{ f.label.text }}</span></label>
+    <label class="checkbox">
+      {{ f() }}
+      <span>{{ f.label.text }}{{ required_marker(f) }}</span>
+    </label>
     {% if f.errors %}
       <ul class="field__errors">
         {% for error in f.errors %}<li>{{ error }}</li>{% endfor %}

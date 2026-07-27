@@ -9,6 +9,9 @@ OTP_VERIFY_LIMIT = "10 per minute; 30 per hour"
 OTP_RESEND_LIMIT = "3 per minute; 10 per hour"
 PASSWORD_CHANGE_LIMIT = "5 per minute; 20 per hour"
 
+PASSWORD_RESET_REQUEST_LIMIT = "3 per minute; 10 per hour"
+PASSWORD_RESET_SUBMIT_LIMIT = "10 per minute; 30 per hour"
+
 WRITE_LIMIT = "60 per minute"
 
 

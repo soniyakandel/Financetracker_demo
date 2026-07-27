@@ -16,6 +16,8 @@ EXEMPT_ENDPOINTS = {
     "auth.register",
     "auth.verify_otp",
     "auth.resend_otp",
+    "auth.forgot_password",
+    "auth.reset_password",
 }
 
 

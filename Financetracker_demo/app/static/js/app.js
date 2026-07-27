@@ -56,6 +56,23 @@
       }
     });
   }
+  function setupPasswordToggles() {
+    document.querySelectorAll("[data-password-toggle]").forEach(function (button) {
+      var input = document.getElementById(button.getAttribute("aria-controls"));
+      if (!input) return;
+      button.hidden = false;
+      button.addEventListener("click", function () {
+        var reveal = input.type === "password";
+        var caret = input.selectionStart;
+        input.type = reveal ? "text" : "password";
+        button.setAttribute("aria-pressed", reveal ? "true" : "false");
+        button.setAttribute("aria-label", reveal ? "Hide password" : "Show password");
+        button.setAttribute("title", reveal ? "Hide password" : "Show password");
+        input.focus();
+        if (caret !== null) input.setSelectionRange(caret, caret);
+      });
+    });
+  }
   function setupAutoFilters() {
     document.querySelectorAll("[data-auto-submit]").forEach(function (field) {
       field.addEventListener("change", function () {
@@ -76,6 +93,7 @@
     setupFlashes();
     setupConfirms();
     setupStrengthMeter();
+    setupPasswordToggles();
     setupAutoFilters();
     setupOtpInput();
   });

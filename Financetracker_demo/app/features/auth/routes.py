@@ -3,8 +3,15 @@ from flask_login import current_user, login_required, login_user, logout_user
 
 from app.extensions import db, limiter
 from app.features.auth import auth_bp
-from app.features.auth.forms import LoginForm, OtpForm, RegisterForm
+from app.features.auth.forms import (
+    ForgotPasswordForm,
+    LoginForm,
+    OtpForm,
+    RegisterForm,
+    ResetPasswordForm,
+)
 from app.features.auth.otp import send_login_code
+from app.features.auth.reset import send_password_changed_notice, send_reset_link
 from app.features.recurring.generator import generate_due_for
 from app.models.audit import (
     EVENT_LOGIN_FAILED,
@@ -13,11 +20,14 @@ from app.models.audit import (
     EVENT_LOGOUT,
     EVENT_OTP_FAILED,
     EVENT_OTP_VERIFIED,
+    EVENT_PASSWORD_RESET_COMPLETED,
+    EVENT_PASSWORD_RESET_FAILED,
+    EVENT_PASSWORD_RESET_REQUESTED,
     EVENT_REGISTER,
 )
 from app.models.base import utcnow
 from app.models.category import Category
-from app.models.security import LoginAttempt, OtpCode
+from app.models.security import LoginAttempt, OtpCode, PasswordResetToken
 from app.models.session import UserSession
 from app.models.user import User
 from app.security.audit import client_agent, client_ip, log_event
@@ -26,6 +36,8 @@ from app.security.ratelimit import (
     LOGIN_LIMIT,
     OTP_RESEND_LIMIT,
     OTP_VERIFY_LIMIT,
+    PASSWORD_RESET_REQUEST_LIMIT,
+    PASSWORD_RESET_SUBMIT_LIMIT,
     REGISTER_LIMIT,
 )
 from app.security.urls import safe_redirect_target
@@ -39,6 +51,11 @@ SESSION_TOKEN_KEY = "session_token"
 LOCKED_MESSAGE = (
     "This account is temporarily locked after too many failed sign-in "
     "attempts. Please try again in about {minutes} minutes."
+)
+
+RESET_SENT_MESSAGE = (
+    "If that email address has an account with us, a reset link is on its way. "
+    "The link is valid for {minutes} minutes."
 )
 
 
@@ -151,13 +168,24 @@ def login():
         session[PENDING_NEXT_KEY] = request.args.get("next", "")
         db.session.commit()
 
-        _, demo_code = send_login_code(user)
-        if demo_code:
-            flash(f"Development mode - your verification code is {demo_code}", "info")
-
+        _flash_code_delivery(send_login_code(user), user)
         return redirect(url_for("auth.verify_otp"))
 
     return render_template("auth/login.html", form=form)
+
+
+def _flash_code_delivery(delivery, user, resend=False):
+    if delivery.demo_code:
+        which = "new verification code" if resend else "verification code"
+        flash(f"Development mode - your {which} is {delivery.demo_code}", "info")
+    elif delivery.delivered:
+        flash(f"We emailed a six digit code to {user.email}.", "info")
+    else:
+        flash(
+            "We could not email your code just now. Please ask for a new one "
+            "in a moment.",
+            "warning",
+        )
 
 
 def _complete_login(user):
@@ -237,13 +265,113 @@ def resend_otp():
         flash("Please sign in with your password first.", "warning")
         return redirect(url_for("auth.login"))
 
-    _, demo_code = send_login_code(user)
-    if demo_code:
-        flash(f"Development mode - your new verification code is {demo_code}", "info")
-    else:
-        flash("A new code is on its way.", "success")
-
+    _flash_code_delivery(send_login_code(user), user, resend=True)
     return redirect(url_for("auth.verify_otp"))
+
+
+@auth_bp.route("/forgot", methods=["GET", "POST"])
+@limiter.limit(PASSWORD_RESET_REQUEST_LIMIT, methods=["POST"])
+def forgot_password():
+    if current_user.is_authenticated:
+        return redirect(url_for("profile.change_password"))
+
+    form = ForgotPasswordForm()
+
+    if form.validate_on_submit():
+        email = form.email.data.strip().lower()
+        user = User.query.filter_by(email=email).first()
+
+        delivery = None
+        if user is not None:
+            delivery = send_reset_link(user)
+        else:
+            log_event(
+                EVENT_PASSWORD_RESET_REQUESTED,
+                detail=f"Reset requested for unknown address {email}",
+                commit=True,
+            )
+
+        if delivery is not None and delivery.demo_link:
+            flash(f"Development mode - your reset link is {delivery.demo_link}", "info")
+
+        flash(
+            RESET_SENT_MESSAGE.format(
+                minutes=current_app.config["PASSWORD_RESET_VALID_MINUTES"]
+            ),
+            "info",
+        )
+        return redirect(url_for("auth.login"))
+
+    return render_template("auth/forgot_password.html", form=form)
+
+
+@auth_bp.route("/reset/<token>", methods=["GET", "POST"])
+@limiter.limit(PASSWORD_RESET_SUBMIT_LIMIT)
+def reset_password(token):
+    if current_user.is_authenticated:
+        return redirect(url_for("profile.change_password"))
+
+    record = PasswordResetToken.lookup(token)
+    if record is None:
+        log_event(
+            EVENT_PASSWORD_RESET_FAILED,
+            detail="Reset link was unknown, already used or expired",
+            commit=True,
+        )
+        flash(
+            "That reset link is no longer valid. Links can only be used once "
+            "and they expire - please request a new one.",
+            "danger",
+        )
+        return redirect(url_for("auth.forgot_password"))
+
+    user = record.user
+    form = ResetPasswordForm()
+
+    if form.validate_on_submit():
+        if user.check_password(form.password.data):
+            flash("Please choose a password you have not used before.", "warning")
+            return render_template(
+                "auth/reset_password.html", form=form, token=token, password_rules=RULES
+            )
+
+        user.set_password(form.password.data)
+
+        record.consume()
+        PasswordResetToken.invalidate_all_for(user)
+
+        user.unlock()
+
+        OtpCode.invalidate_all_for(user)
+
+        active = UserSession.query.filter(
+            UserSession.user_id == user.id,
+            UserSession.is_active.is_(True),
+        ).all()
+        for existing in active:
+            existing.revoke(reason="password_reset")
+
+        log_event(
+            EVENT_PASSWORD_RESET_COMPLETED,
+            detail=f"Password reset from a link; {len(active)} session(s) ended",
+            user=user,
+        )
+        db.session.commit()
+
+        send_password_changed_notice(user)
+
+        session.clear()
+
+        flash(
+            "Your password has been reset and every signed-in device was "
+            "signed out. Please sign in with your new password.",
+            "success",
+        )
+        return redirect(url_for("auth.login"))
+
+    return render_template(
+        "auth/reset_password.html", form=form, token=token, password_rules=RULES
+    )
 
 
 @auth_bp.route("/logout", methods=["POST"])

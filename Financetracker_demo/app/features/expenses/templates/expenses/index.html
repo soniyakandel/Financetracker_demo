@@ -1,5 +1,21 @@
 {% extends "layouts/app.html" %}
 {% from "partials/_pagination.html" import pagination as page_links %}
+
+{% macro sort_header(label, desc_key, asc_key, base_args, current, extra_class="") %}
+  {% set next_sort = asc_key if current == desc_key else desc_key %}
+  <th scope="col" class="{{ extra_class }}"
+      {% if current == desc_key %}aria-sort="descending"
+      {% elif current == asc_key %}aria-sort="ascending"{% endif %}>
+    <a class="table__sort{{ ' is-active' if current in (desc_key, asc_key) else '' }}"
+       href="{{ url_for('expenses.index', **dict(base_args, sort=next_sort)) }}">
+      {{ label }}
+      <span class="table__sort-icon" aria-hidden="true">
+        {%- if current == desc_key %}▼{% elif current == asc_key %}▲{% else %}↕{% endif -%}
+      </span>
+    </a>
+  </th>
+{% endmacro %}
+
 {% block title %}Transactions - Finance Tracker{% endblock %}
 {% block page_title %}Transactions{% endblock %}
 {% block page_subtitle %}
@@ -59,7 +75,7 @@
       </div>
       <div class="field">
         <label class="field__label" for="sort">Sort by</label>
-        <select class="select" id="sort" name="sort">
+        <select class="select" id="sort" name="sort" data-auto-submit>
           <option value="newest"  {% if filters.sort == 'newest'  %}selected{% endif %}>Newest first</option>
           <option value="oldest"  {% if filters.sort == 'oldest'  %}selected{% endif %}>Oldest first</option>
           <option value="highest" {% if filters.sort == 'highest' %}selected{% endif %}>Highest amount</option>
@@ -81,14 +97,16 @@
       </div>
     </div>
     {% if transactions %}
+      {% set sort_args = request.args.to_dict() %}
+      {% set _ = sort_args.pop('page', None) %}
       <div class="table-wrap">
         <table class="table">
           <thead>
             <tr>
-              <th scope="col">Date</th>
+              {{ sort_header('Date', 'newest', 'oldest', sort_args, filters.sort) }}
               <th scope="col">Category</th>
               <th scope="col">Note</th>
-              <th scope="col" class="num">Amount</th>
+              {{ sort_header('Amount', 'highest', 'lowest', sort_args, filters.sort, 'num') }}
               <th scope="col"><span class="visually-hidden">Actions</span></th>
             </tr>
           </thead>

@@ -9,7 +9,7 @@ from app.models.recurring import (
     RecurringExpense,
 )
 from app.models.revoked_token import RevokedToken
-from app.models.security import LoginAttempt, OtpCode
+from app.models.security import LoginAttempt, OtpCode, PasswordResetToken
 from app.models.session import UserSession
 from app.models.transaction import (
     EXPENSE,

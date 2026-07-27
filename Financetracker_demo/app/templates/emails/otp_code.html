@@ -1,0 +1,23 @@
+{% extends "emails/_layout.html" %}
+
+{% block email_title %}Your verification code{% endblock %}
+
+{% block email_body %}
+  <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#334155;">
+    Hello {{ user.name }}, use this code to finish signing in.
+  </p>
+
+  <p style="margin:0 0 20px;padding:16px;background:#f1f5f9;border-radius:10px;text-align:center;
+            font-family:'SFMono-Regular',Consolas,monospace;font-size:30px;letter-spacing:8px;
+            font-weight:700;color:#0f172a;">{{ code }}</p>
+
+  <p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:#475569;">
+    The code is valid for <strong>{{ minutes }} minutes</strong>, can only be
+    used once, and stops working after {{ max_attempts }} wrong tries.
+  </p>
+
+  <p style="margin:0;font-size:14px;line-height:1.6;color:#b91c1c;">
+    If you did not just try to sign in, somebody else may know your password.
+    Please change it as soon as you can.
+  </p>
+{% endblock %}

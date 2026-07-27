@@ -10,6 +10,9 @@ EVENT_OTP_FAILED = "otp_failed"
 EVENT_OTP_VERIFIED = "otp_verified"
 EVENT_LOGOUT = "logout"
 EVENT_PASSWORD_CHANGED = "password_changed"
+EVENT_PASSWORD_RESET_REQUESTED = "password_reset_requested"
+EVENT_PASSWORD_RESET_COMPLETED = "password_reset_completed"
+EVENT_PASSWORD_RESET_FAILED = "password_reset_failed"
 EVENT_PROFILE_UPDATED = "profile_updated"
 EVENT_SESSION_REVOKED = "session_revoked"
 EVENT_SESSION_EXPIRED = "session_expired"
@@ -25,6 +28,9 @@ EVENT_LABELS = {
     EVENT_OTP_VERIFIED: "Verification code accepted",
     EVENT_LOGOUT: "Signed out",
     EVENT_PASSWORD_CHANGED: "Password changed",
+    EVENT_PASSWORD_RESET_REQUESTED: "Password reset link requested",
+    EVENT_PASSWORD_RESET_COMPLETED: "Password reset from a link",
+    EVENT_PASSWORD_RESET_FAILED: "Invalid password reset link",
     EVENT_PROFILE_UPDATED: "Profile updated",
     EVENT_SESSION_REVOKED: "Session revoked",
     EVENT_SESSION_EXPIRED: "Session expired",
@@ -60,6 +66,7 @@ class AuditLog(db.Model):
             EVENT_LOGIN_LOCKED,
             EVENT_OTP_FAILED,
             EVENT_ACCESS_DENIED,
+            EVENT_PASSWORD_RESET_FAILED,
         )
 
     def __repr__(self):

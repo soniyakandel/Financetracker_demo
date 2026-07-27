@@ -20,3 +20,7 @@
     {{ form.submit(class="btn btn--block") }}
   </form>
 {% endblock %}
+
+{% block auth_foot %}
+  <a href="{{ url_for('auth.forgot_password') }}">Forgot your password?</a>
+{% endblock %}

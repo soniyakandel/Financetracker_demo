@@ -26,7 +26,7 @@ def register_security_headers(app):
             "geolocation=(), microphone=(), camera=(), payment=()"
         )
 
-        if not app.debug and not app.testing:
+        if app.config.get("FORCE_HTTPS"):
             response.headers["Strict-Transport-Security"] = (
                 "max-age=31536000; includeSubDomains"
             )

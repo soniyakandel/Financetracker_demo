@@ -37,7 +37,26 @@ def run_recurring_command():
     click.echo(f"{total} recurring expense(s) created.")
 
 
+@click.command("send-test-email")
+@click.argument("recipient")
+@with_appcontext
+def send_test_email_command(recipient):
+    from app.mailer import is_configured, send_email
+
+    if not is_configured():
+        click.echo("No mail server configured - set MAIL_SERVER in .env first.")
+        return
+
+    sent = send_email(
+        "Finance Tracker test email",
+        recipient,
+        "This is a test message. If you can read it, SMTP is set up correctly.",
+    )
+    click.echo(f"Sent to {recipient}." if sent else "Sending failed - see the log above.")
+
+
 def register_commands(app):
     app.cli.add_command(init_db_command)
     app.cli.add_command(reset_db_command)
     app.cli.add_command(run_recurring_command)
+    app.cli.add_command(send_test_email_command)

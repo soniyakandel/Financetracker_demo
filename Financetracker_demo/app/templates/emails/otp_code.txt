@@ -1,0 +1,15 @@
+Hello {{ user.name }},
+
+Your Finance Tracker verification code is:
+
+    {{ code }}
+
+Enter it on the verification page to finish signing in. The code is valid for
+{{ minutes }} minutes, can only be used once, and stops working after
+{{ max_attempts }} wrong tries.
+
+If you did not just try to sign in, somebody else may know your password.
+Please change it as soon as you can.
+
+-- Finance Tracker
+This is an automated message; please do not reply to it.

@@ -1,7 +1,12 @@
+import logging
 import os
+from logging.handlers import RotatingFileHandler
 
 from dotenv import load_dotenv
 from flask import Flask
+from werkzeug.middleware.proxy_fix import ProxyFix
+
+load_dotenv()
 
 from app.commands import register_commands
 from app.config import get_config
@@ -13,14 +18,16 @@ from app.security.headers import register_security_headers
 from app.security.ratelimit import register_ratelimit_handlers
 from app.security.session_guard import register_session_guard
 
-load_dotenv()
-
 
 def create_app(config_name=None):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(get_config(config_name))
 
     os.makedirs(app.instance_path, exist_ok=True)
+
+    _check_production_settings(app)
+    _configure_logging(app)
+    _apply_proxy_fix(app)
 
     _init_extensions(app)
 
@@ -36,6 +43,55 @@ def create_app(config_name=None):
     register_commands(app)
 
     return app
+
+
+def _check_production_settings(app):
+    if app.debug or app.testing:
+        return
+
+    if app.config["SECRET_KEY"] in ("", "dev-only-insecure-key"):
+        raise RuntimeError(
+            "SECRET_KEY is missing or still the development placeholder. "
+            "Set a real one in .env before running in production, e.g.\n"
+            '    python -c "import secrets; print(secrets.token_hex(32))"'
+        )
+
+
+def _configure_logging(app):
+    if app.debug or app.testing:
+        return
+
+    log_dir = os.path.join(os.path.dirname(app.root_path), "logs")
+    os.makedirs(log_dir, exist_ok=True)
+
+    formatter = logging.Formatter(
+        "%(asctime)s %(levelname)-8s %(name)s: %(message)s"
+    )
+
+    file_handler = RotatingFileHandler(
+        os.path.join(log_dir, "app.log"), maxBytes=1_000_000, backupCount=5
+    )
+    file_handler.setFormatter(formatter)
+    file_handler.setLevel(logging.INFO)
+
+    console = logging.StreamHandler()
+    console.setFormatter(formatter)
+
+    root = logging.getLogger()
+    root.setLevel(logging.INFO)
+    if not any(isinstance(h, RotatingFileHandler) for h in root.handlers):
+        root.addHandler(file_handler)
+        root.addHandler(console)
+
+    app.logger.setLevel(logging.INFO)
+
+
+def _apply_proxy_fix(app):
+    hops = app.config.get("TRUSTED_PROXY_HOPS", 0)
+    if hops > 0:
+        app.wsgi_app = ProxyFix(
+            app.wsgi_app, x_for=hops, x_proto=hops, x_host=hops, x_prefix=hops
+        )
 
 
 def _init_extensions(app):

@@ -241,6 +241,8 @@ button { font: inherit; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field__label { font-size: 13.5px; font-weight: 600; color: var(--slate-700); }
 .field__hint { font-size: 12.5px; color: var(--ink-soft); }
+.field__required { color: var(--red-500); font-weight: 700; }
+.field__optional { color: var(--ink-soft); font-weight: 400; font-size: 12.5px; }
 
 .input, .select, .textarea {
   width: 100%;
@@ -260,8 +262,29 @@ button { font: inherit; }
 
 .field__errors { color: var(--red-500); font-size: 12.5px; }
 
-.checkbox { display: flex; align-items: center; gap: var(--space-2); font-size: 14px; }
-.checkbox input { width: 16px; height: 16px; accent-color: var(--teal-600); }
+.input-group { position: relative; display: flex; align-items: center; }
+.input--with-affix { padding-right: 42px; }
+.input-affix {
+  position: absolute; right: 6px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 5px; border: 0; border-radius: var(--radius-sm);
+  background: none; color: var(--ink-soft); cursor: pointer;
+}
+.input-affix:hover { color: var(--ink); background: var(--slate-100); }
+.input-affix:focus-visible { outline: 2px solid var(--teal-500); outline-offset: 1px; }
+.input-affix[hidden] { display: none; }
+.input-affix .icon--eye-off { display: none; }
+.input-affix[aria-pressed="true"] .icon--eye { display: none; }
+.input-affix[aria-pressed="true"] .icon--eye-off { display: block; }
+
+.checkbox {
+  display: flex; align-items: flex-start; gap: var(--space-2);
+  font-size: 14px; line-height: 1.45;
+}
+.checkbox input {
+  width: 16px; height: 16px; flex: 0 0 auto; margin-top: 2px;
+  accent-color: var(--teal-600);
+}
 
 .rule-list { font-size: 12.5px; color: var(--ink-soft); display: grid; gap: 2px; }
 .rule-list li::before { content: "\2022"; margin-right: 6px; color: var(--teal-500); }
@@ -293,6 +316,15 @@ button { font: inherit; }
   color: var(--ink-soft); font-weight: 650;
 }
 .table tbody tr:hover { background: var(--slate-50); }
+.table__sort {
+  display: inline-flex; align-items: center; gap: 5px;
+  color: inherit; text-decoration: none;
+}
+.table__sort:hover { color: var(--ink); }
+.table th.num .table__sort { flex-direction: row-reverse; }
+.table__sort-icon { font-size: 10px; opacity: .4; }
+.table__sort.is-active { color: var(--teal-600); }
+.table__sort.is-active .table__sort-icon { opacity: 1; }
 .table td.num, .table th.num { text-align: right; font-family: var(--font-num); }
 .table td.wrap { white-space: normal; min-width: 180px; }
 
