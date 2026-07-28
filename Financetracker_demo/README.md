@@ -21,7 +21,11 @@ Settings (secret key, database, session and login limits) are read from the
 `.env` file included with the project.
 
 
-Tests: `python -m pytest`
+Tests: `python -m pytest -v`
+
+## Project Video
+
+[Watch the project video](https://drive.google.com/file/d/1rzVVOgg35JTyphfNfuvBFxomN5Y4b94-/view?usp=sharing)
 
 ## Features
 
